@@ -318,6 +318,40 @@ a { color: inherit; }
 }
 .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
 
+/* ── Guided picker quiz (separate window) ──────────────────────────────── */
+.quiz-card { position: relative; }
+.quiz-body { padding: 44px 20px 24px; }
+.quiz-question { font-size: 1.2rem; font-weight: 800; margin-bottom: 18px; text-align: center; }
+.quiz-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+.quiz-option {
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.quiz-option:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+.quiz-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.quiz-result-card {
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+}
+.quiz-result-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+.quiz-result-card .info { padding: 10px 11px 12px; }
+.quiz-result-card .name { font-size: 0.82rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; min-height: 2.5em; }
+.quiz-result-card .row { display: flex; align-items: center; justify-content: space-between; }
+.quiz-result-card .price { font-size: 0.82rem; font-weight: 700; }
+.quiz-result-card .add {
+  width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--black); color: #fff; font-size: 1rem; flex: none;
+}
+.quiz-actions { display: flex; justify-content: center; }
+
 /* ── Cart drawer ────────────────────────────────────────────────────── */
 .drawer {
   position: fixed;

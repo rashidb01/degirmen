@@ -204,6 +204,160 @@
   }
   dishOverlay.addEventListener('click', (e) => { if (e.target === dishOverlay) closeDishModal(); });
 
+  // ── guided picker quiz (separate window: question-by-question, then result cards) ──
+  const quizOverlay = document.getElementById('quizOverlay');
+  const quizModal = document.getElementById('quizModal');
+  let quizAnswers = {};
+
+  const QUIZ_CATEGORY_STEP = {
+    key: 'category',
+    question: 'Что хотите заказать?',
+    options: [
+      { label: '🍲 Первое', value: 'soups' },
+      { label: '🍽️ Основное', value: 'mains' },
+      { label: '🍕 Пиццу', value: 'pizza' },
+      { label: '🍰 Сладкое', value: 'desserts' },
+      { label: '🥤 Просто попить', value: 'drinks' },
+      { label: '🤷 Удивите меня', value: null },
+    ],
+  };
+  const QUIZ_MEAT_STEP = {
+    key: 'meat',
+    question: 'С мясом или рыбой, или без?',
+    options: [
+      { label: '🥩 С мясом или рыбой', value: 'meat' },
+      { label: '🥦 Без мяса', value: 'veg' },
+      { label: '🤷 Не важно', value: null },
+    ],
+  };
+  const QUIZ_SPICE_STEP = {
+    key: 'spice',
+    question: 'Любите поострее?',
+    options: [
+      { label: '🌶️ Да, поострее', value: 'spicy' },
+      { label: '😌 Нет, помягче', value: 'mild' },
+      { label: '🤷 Не важно', value: null },
+    ],
+  };
+
+  function quizCategoryStep() {
+    const have = new Set(state.dishes.filter((d) => d.available !== false).map((d) => d.categoryId));
+    const options = QUIZ_CATEGORY_STEP.options.filter((o) => o.value === null || have.has(o.value));
+    return { ...QUIZ_CATEGORY_STEP, options };
+  }
+
+  function nextQuizStep() {
+    if (!('category' in quizAnswers)) return quizCategoryStep();
+    const cat = quizAnswers.category;
+    const needsMeat = cat === null || ['mains', 'soups', 'pizza'].includes(cat);
+    const needsSpice = cat !== 'drinks';
+    if (needsMeat && !('meat' in quizAnswers)) return QUIZ_MEAT_STEP;
+    if (needsSpice && !('spice' in quizAnswers)) return QUIZ_SPICE_STEP;
+    return null; // done — show results
+  }
+
+  function openQuiz() {
+    quizAnswers = {};
+    renderQuizStep();
+    quizOverlay.classList.add('open');
+    updateFabVisibility();
+  }
+  function closeQuiz() { quizOverlay.classList.remove('open'); updateFabVisibility(); }
+  quizOverlay.addEventListener('click', (e) => { if (e.target === quizOverlay) closeQuiz(); });
+
+  function renderQuizStep() {
+    const step = nextQuizStep();
+    if (!step) { renderQuizResults(); return; }
+    quizModal.innerHTML = `
+      <button class="modal-close" id="quizCloseBtn" type="button">✕</button>
+      <div class="quiz-body">
+        <div class="quiz-question">${escapeHtml(step.question)}</div>
+        <div class="quiz-options">
+          ${step.options.map((o, i) => `<button type="button" class="quiz-option" data-i="${i}">${o.label}</button>`).join('')}
+        </div>
+      </div>
+    `;
+    quizModal.querySelector('#quizCloseBtn').addEventListener('click', closeQuiz);
+    quizModal.querySelectorAll('.quiz-option').forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        quizAnswers[step.key] = step.options[i].value;
+        renderQuizStep();
+      });
+    });
+  }
+
+  function matchQuizDishes() {
+    let list = state.dishes.filter((d) => d.available !== false);
+    if (quizAnswers.category) list = list.filter((d) => d.categoryId === quizAnswers.category);
+
+    let result = list;
+    if (quizAnswers.meat === 'veg') {
+      const veg = list.filter((d) => (d.tags || []).some((t) => /вегетар|веган/i.test(t)));
+      if (veg.length) result = veg;
+    } else if (quizAnswers.meat === 'meat') {
+      const meat = list.filter((d) => !(d.tags || []).some((t) => /вегетар|веган/i.test(t)));
+      if (meat.length) result = meat;
+    }
+    if (quizAnswers.spice === 'spicy') {
+      const spicy = result.filter((d) => (d.tags || []).some((t) => /остр/i.test(t)));
+      if (spicy.length) result = spicy;
+    } else if (quizAnswers.spice === 'mild') {
+      const mild = result.filter((d) => !(d.tags || []).some((t) => /остр/i.test(t)));
+      if (mild.length) result = mild;
+    }
+    return result
+      .slice()
+      .sort((a, b) => {
+        const aHit = (a.tags || []).some((t) => /хит/i.test(t)) ? 1 : 0;
+        const bHit = (b.tags || []).some((t) => /хит/i.test(t)) ? 1 : 0;
+        return bHit - aHit;
+      })
+      .slice(0, 6);
+  }
+
+  function renderQuizResults() {
+    const results = matchQuizDishes();
+    quizModal.innerHTML = `
+      <button class="modal-close" id="quizCloseBtn" type="button">✕</button>
+      <div class="quiz-body">
+        <div class="quiz-question">Вот что подойдёт 👇</div>
+        ${results.length === 0
+          ? `<div class="empty-state">Ничего не нашлось под эти пожелания — загляните в меню целиком 🙂</div>`
+          : `<div class="quiz-result-grid">
+              ${results.map((d) => `
+                <div class="quiz-result-card" data-id="${d.id}">
+                  <img src="${d.image || placeholderImg()}" alt="" />
+                  <div class="info">
+                    <div class="name">${escapeHtml(d.name)}</div>
+                    <div class="row">
+                      <span class="price">${money(d.price)}</span>
+                      <button type="button" class="add" aria-label="Добавить">+</button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>`}
+        <div class="quiz-actions">
+          <button class="btn-ghost" id="quizRestartBtn" type="button">↻ Спросить заново</button>
+        </div>
+      </div>
+    `;
+    quizModal.querySelector('#quizCloseBtn').addEventListener('click', closeQuiz);
+    quizModal.querySelector('#quizRestartBtn').addEventListener('click', openQuiz);
+    quizModal.querySelectorAll('.quiz-result-card').forEach((card) => {
+      const dish = results.find((d) => d.id === card.dataset.id);
+      card.querySelector('.add').addEventListener('click', (e) => {
+        e.stopPropagation();
+        addToCart(dish.id, 1);
+        pulse(e.target);
+      });
+      card.addEventListener('click', () => {
+        closeQuiz();
+        openDishModal(dish);
+      });
+    });
+  }
+
   // ── cart ──────────────────────────────────────────────────────────────
   function addToCart(dishId, qty) {
     state.cart[dishId] = (state.cart[dishId] || 0) + qty;
@@ -243,7 +397,7 @@
 
   const fabRow = document.querySelector('.fab-row');
   function updateFabVisibility() {
-    const anyOpen = dishOverlay.classList.contains('open') || cartOverlay.classList.contains('open');
+    const anyOpen = dishOverlay.classList.contains('open') || cartOverlay.classList.contains('open') || quizOverlay.classList.contains('open');
     fabRow?.classList.toggle('hidden', anyOpen);
   }
 
@@ -430,7 +584,7 @@
   document.getElementById('idleNudgeClose').addEventListener('click', optOutOfIdleNudge);
   document.getElementById('idleNudgeBtn').addEventListener('click', () => {
     hideIdleNudge();
-    window.DegirmenChat?.startGuidedPick();
+    openQuiz();
   });
 
   // expose minimal API for chat.js
