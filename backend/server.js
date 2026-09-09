@@ -302,7 +302,11 @@ app.post('/api/chat', async (req, res) => {
       body: JSON.stringify({
         model: GROQ_MODEL,
         temperature: 0.4,
-        max_tokens: 500,
+        max_tokens: 700,
+        // gpt-oss is a reasoning model: it spends part of max_tokens on hidden
+        // "thinking" before the visible reply. Keep that budget small so the
+        // actual answer doesn't get starved (empty content -> our fallback line).
+        reasoning_effort: 'low',
         messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT(menuContext) }, ...safeMessages],
       }),
     });
@@ -313,7 +317,11 @@ app.post('/api/chat', async (req, res) => {
       return res.status(502).json({ error: 'AI provider error' });
     }
     const data = await groqRes.json();
-    const reply = data?.choices?.[0]?.message?.content?.trim() || 'Извините, не получилось сформировать ответ. Попробуйте ещё раз.';
+    const content = data?.choices?.[0]?.message?.content?.trim();
+    if (!content) {
+      console.warn('Groq returned empty content (reasoning likely ate the token budget):', JSON.stringify(data?.usage));
+    }
+    const reply = content || 'Извините, не получилось сформировать ответ. Попробуйте ещё раз.';
     res.json({ reply });
   } catch (e) {
     console.error('Chat error:', e);
