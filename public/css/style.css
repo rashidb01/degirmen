@@ -52,7 +52,7 @@ a { color: inherit; }
   gap: 14px;
 }
 .brand { display: flex; flex-direction: column; gap: 2px; }
-.brand-logo { height: 30px; width: auto; display: block; }
+.brand-logo { height: 40px; width: auto; display: block; }
 .brand-tagline { font-size: 0.72rem; color: var(--ink-soft); margin-left: 2px; }
 
 .header-spacer { flex: 1; }
@@ -564,7 +564,7 @@ a { color: inherit; }
 
 @media (max-width: 480px) {
   .header-row { padding: 12px 16px; }
-  .brand-logo { height: 26px; }
+  .brand-logo { height: 34px; }
   .hero { padding: 0 16px; }
   .menu-wrap { padding: 8px 16px 100px; }
 }
