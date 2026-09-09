@@ -148,8 +148,9 @@
     modalQty = 1;
     renderDishModal();
     dishOverlay.classList.add('open');
+    updateFabVisibility();
   }
-  function closeDishModal() { dishOverlay.classList.remove('open'); }
+  function closeDishModal() { dishOverlay.classList.remove('open'); updateFabVisibility(); }
 
   function renderDishModal() {
     const dish = modalDish;
@@ -164,18 +165,23 @@
         <div class="modal-desc">${escapeHtml(dish.description || '')}</div>
         ${(dish.tags || []).length ? `<div class="tag-row">${dish.tags.map((t) => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
         <div class="allergen-block">
-          <strong>Аллергены</strong>
-          ${dish.allergens && dish.allergens.length ? escapeHtml(dish.allergens.join(', ')) : 'Не заявлены. Если сомневаетесь — спросите у AI-помощника.'}
+          <div class="allergen-icon">⚠️</div>
+          <div>
+            <strong>Аллергены</strong>
+            ${dish.allergens && dish.allergens.length
+              ? `<div class="allergen-chip-row">${dish.allergens.map((a) => `<span class="allergen-chip">${escapeHtml(a)}</span>`).join('')}</div>`
+              : `<div class="allergen-note">Не заявлены. Если сомневаетесь — спросите у AI-помощника.</div>`}
+          </div>
         </div>
-        <div class="qty-row">
+        <div class="qty-add-row">
           <div class="qty-stepper">
             <button type="button" id="qtyMinus">−</button>
             <span id="qtyVal">${modalQty}</span>
             <button type="button" id="qtyPlus">+</button>
           </div>
+          <button class="btn-primary" id="addToCartBtn" type="button">Добавить · ${money(dish.price * modalQty)}</button>
         </div>
         <div class="modal-actions">
-          <button class="btn-primary" id="addToCartBtn" type="button">Добавить в корзину · ${money(dish.price * modalQty)}</button>
           <button class="btn-ghost" id="askAiBtn" type="button">🤖 Спросить AI про это блюдо</button>
         </div>
       </div>
@@ -194,7 +200,7 @@
   }
   function refreshQty() {
     dishModal.querySelector('#qtyVal').textContent = modalQty;
-    dishModal.querySelector('#addToCartBtn').textContent = `Добавить в корзину · ${money(modalDish.price * modalQty)}`;
+    dishModal.querySelector('#addToCartBtn').textContent = `Добавить · ${money(modalDish.price * modalQty)}`;
   }
   dishOverlay.addEventListener('click', (e) => { if (e.target === dishOverlay) closeDishModal(); });
 
@@ -204,6 +210,7 @@
     saveCart();
     updateCartBadge();
     renderCart();
+    dismissIdleNudge();
   }
   function setQty(dishId, qty) {
     if (qty <= 0) delete state.cart[dishId];
@@ -231,8 +238,14 @@
   const cartBody = document.getElementById('cartBody');
   const cartFooter = document.getElementById('cartFooter');
 
-  function openCart() { renderCart(); cartOverlay.classList.add('open'); cartDrawer.classList.add('open'); }
-  function closeCart() { cartOverlay.classList.remove('open'); cartDrawer.classList.remove('open'); }
+  const fabRow = document.querySelector('.fab-row');
+  function updateFabVisibility() {
+    const anyOpen = dishOverlay.classList.contains('open') || cartOverlay.classList.contains('open');
+    fabRow?.classList.toggle('hidden', anyOpen);
+  }
+
+  function openCart() { renderCart(); cartOverlay.classList.add('open'); cartDrawer.classList.add('open'); updateFabVisibility(); }
+  function closeCart() { cartOverlay.classList.remove('open'); cartDrawer.classList.remove('open'); updateFabVisibility(); }
   document.getElementById('cartBtn').addEventListener('click', openCart);
   document.getElementById('cartCloseBtn').addEventListener('click', closeCart);
   cartOverlay.addEventListener('click', (e) => { if (e.target === cartOverlay) closeCart(); });
@@ -268,6 +281,8 @@
       cartBody.appendChild(row);
     });
 
+    renderCartSuggestions(entries.map(([id]) => id));
+
     const formHtml = document.createElement('div');
     formHtml.innerHTML = `
       <div class="field-group">
@@ -283,6 +298,54 @@
 
     cartFooter.classList.remove('hidden');
     document.getElementById('cartTotal').textContent = money(cartTotal());
+  }
+
+  // Nudge to complete the order: if there's nothing from a "core" category yet
+  // (drink, first course…), show a few pickable cards for it right in the cart.
+  const SUGGEST_RULES = [
+    { categoryId: 'soups', title: 'Не хотите первое?' },
+    { categoryId: 'drinks', title: 'Не забудьте про напиток' },
+  ];
+  function renderCartSuggestions(cartDishIds) {
+    const cartCategoryIds = new Set(cartDishIds.map((id) => state.dishes.find((d) => d.id === id)?.categoryId));
+    SUGGEST_RULES.forEach((rule) => {
+      if (cartCategoryIds.has(rule.categoryId)) return;
+      const category = state.categories.find((c) => c.id === rule.categoryId);
+      if (!category) return;
+      const options = state.dishes.filter((d) => d.categoryId === rule.categoryId && d.available !== false).slice(0, 6);
+      if (options.length === 0) return;
+
+      const block = document.createElement('div');
+      block.className = 'cart-suggest';
+      block.innerHTML = `<div class="cart-suggest-title">${escapeHtml(rule.title)}</div>`;
+      const row = document.createElement('div');
+      row.className = 'cart-suggest-row';
+      options.forEach((dish) => {
+        const card = document.createElement('div');
+        card.className = 'cart-suggest-card';
+        card.innerHTML = `
+          <img src="${dish.image || placeholderImg()}" alt="" />
+          <div class="info">
+            <div class="name">${escapeHtml(dish.name)}</div>
+            <div class="row">
+              <span class="price">${money(dish.price)}</span>
+              <button type="button" class="add" aria-label="Добавить">+</button>
+            </div>
+          </div>
+        `;
+        card.querySelector('.add').addEventListener('click', (e) => {
+          e.stopPropagation();
+          addToCart(dish.id, 1);
+        });
+        card.addEventListener('click', () => {
+          closeCart();
+          openDishModal(dish);
+        });
+        row.appendChild(card);
+      });
+      block.appendChild(row);
+      cartBody.appendChild(block);
+    });
   }
 
   document.getElementById('checkoutBtn').addEventListener('click', async () => {
@@ -330,12 +393,40 @@
     document.getElementById('newOrderBtn').addEventListener('click', closeCart);
   }
 
+  // ── idle "need help choosing?" nudge ────────────────────────────────────
+  const NUDGE_DELAY_MS = 60000;
+  const NUDGE_DISMISSED_KEY = 'degirmen_nudge_dismissed';
+  const idleNudge = document.getElementById('idleNudge');
+  let idleTimer = null;
+
+  function scheduleIdleNudge() {
+    if (sessionStorage.getItem(NUDGE_DISMISSED_KEY)) return;
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (cartCount() === 0) showIdleNudge();
+    }, NUDGE_DELAY_MS);
+  }
+  function showIdleNudge() { idleNudge.classList.remove('hidden'); }
+  function dismissIdleNudge() {
+    idleNudge.classList.add('hidden');
+    clearTimeout(idleTimer);
+    try { sessionStorage.setItem(NUDGE_DISMISSED_KEY, '1'); } catch {}
+  }
+  document.getElementById('idleNudgeClose').addEventListener('click', dismissIdleNudge);
+  document.getElementById('idleNudgeBtn').addEventListener('click', () => {
+    dismissIdleNudge();
+    window.DegirmenChat?.startGuidedPick();
+  });
+
   // expose minimal API for chat.js
   window.Degirmen = {
     getMenuContext: () => ({ categories: state.categories, dishes: state.dishes }),
     addToCart,
     money,
+    cancelIdleNudge: dismissIdleNudge,
   };
+
+  scheduleIdleNudge();
 
   loadMenu().catch((e) => {
     document.getElementById('menuWrap').innerHTML = `<div class="empty-state">Не удалось загрузить меню. Обновите страницу.</div>`;

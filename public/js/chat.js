@@ -25,6 +25,7 @@
     opened = true;
     if (history.length === 0) greet();
     input.focus();
+    window.Degirmen?.cancelIdleNudge();
   }
   function close() { panel.classList.remove('open'); }
   toggleBtn.addEventListener('click', () => (panel.classList.contains('open') ? close() : open()));
@@ -115,5 +116,32 @@
     sendMessage(`Расскажи подробнее про блюдо "${dish.name}": состав, аллергены, и если есть аллергия — что взять взамен из меню?`);
   }
 
-  window.DegirmenChat = { open, close, askAbout };
+  // Called from the idle "помочь с выбором?" nudge: opens the chat and walks
+  // the guest through a couple of quick questions instead of a blank input.
+  function startGuidedPick() {
+    open();
+    addMessage('assistant', 'Конечно! Что вам хочется — выберите категорию, и я подберу пару вариантов 👇');
+    renderCategoryPicker();
+  }
+
+  function renderCategoryPicker() {
+    const categories = window.Degirmen?.getMenuContext()?.categories || [];
+    suggestionsEl.innerHTML = '';
+    categories.forEach((cat) => {
+      const b = document.createElement('button');
+      b.className = 'chip-btn';
+      b.type = 'button';
+      b.textContent = cat.name;
+      b.addEventListener('click', () => sendMessage(`Хочу что-нибудь из категории "${cat.name}", посоветуй пару блюд и почему.`));
+      suggestionsEl.appendChild(b);
+    });
+    const surprise = document.createElement('button');
+    surprise.className = 'chip-btn';
+    surprise.type = 'button';
+    surprise.textContent = 'Удивите меня 🎲';
+    surprise.addEventListener('click', () => sendMessage('Не знаю, что выбрать — удивите, посоветуйте что-нибудь популярное.'));
+    suggestionsEl.appendChild(surprise);
+  }
+
+  window.DegirmenChat = { open, close, askAbout, startGuidedPick };
 })();

@@ -1,12 +1,17 @@
 :root {
-  --bg: #FBF6EF;
+  --bg: #FFFFFF;
   --surface: #FFFFFF;
+  --surface-soft: #F7F5F2;
   --ink: #2B2320;
   --ink-soft: #6B5F55;
-  --line: #ECE1D4;
+  --line: #ECE6DD;
   --accent: #C1622D;
   --accent-dark: #9C4A1F;
   --accent-soft: #F3DCC7;
+  --warn: #B8460E;
+  --warn-soft: #FCEEE4;
+  --black: #000000;
+  --black-hover: #262626;
   --success: #3F8355;
   --danger: #C0392B;
   --radius: 16px;
@@ -34,7 +39,7 @@ a { color: inherit; }
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(251, 246, 239, 0.92);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
@@ -99,25 +104,21 @@ a { color: inherit; }
   border-color: var(--ink);
 }
 
-/* ── Hero ───────────────────────────────────────────────────────────── */
+/* ── Hero / search ──────────────────────────────────────────────────── */
 .hero {
   max-width: 1120px;
-  margin: 28px auto 8px;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 14px 20px 4px;
 }
-.hero h1 { font-size: 1.9rem; margin: 0 0 6px; }
-.hero p { color: var(--ink-soft); margin: 0; max-width: 560px; }
 .search-box {
-  margin-top: 18px;
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--surface);
+  background: var(--surface-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
+  padding: 11px 14px;
   max-width: 420px;
-  box-shadow: var(--shadow);
 }
 .search-box input {
   border: none;
@@ -178,7 +179,7 @@ a { color: inherit; }
 .dish-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
 .dish-price { font-weight: 800; font-size: 1.02rem; }
 .add-btn {
-  background: var(--ink);
+  background: var(--black);
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -191,7 +192,7 @@ a { color: inherit; }
   justify-content: center;
   transition: background 0.15s ease;
 }
-.add-btn:hover { background: var(--accent); }
+.add-btn:hover { background: var(--black-hover); }
 .dish-unavailable { opacity: 0.5; }
 .dish-unavailable .add-btn { pointer-events: none; background: #bbb; }
 
@@ -248,30 +249,60 @@ a { color: inherit; }
 .modal-body h3 { margin: 0 0 6px; font-size: 1.3rem; }
 .modal-price { font-weight: 800; font-size: 1.1rem; color: var(--accent-dark); margin-bottom: 10px; }
 .modal-desc { color: var(--ink-soft); margin-bottom: 14px; }
-.tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .tag-pill { font-size: 0.72rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-dark); }
-.allergen-block { background: #FBF1E8; border: 1px solid var(--accent-soft); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.85rem; margin-bottom: 16px; }
-.allergen-block strong { display: block; margin-bottom: 4px; }
 
-.qty-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-.qty-stepper { display: flex; align-items: center; gap: 10px; background: var(--bg); border-radius: 999px; padding: 4px; }
-.qty-stepper button {
-  width: 30px; height: 30px; border-radius: 999px; border: none; background: var(--surface);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12); font-size: 1.1rem;
+.allergen-block {
+  background: var(--warn-soft);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
 }
-.qty-stepper span { min-width: 20px; text-align: center; font-weight: 700; }
+.allergen-block .allergen-icon { font-size: 1.1rem; line-height: 1.3; }
+.allergen-block strong { display: block; font-size: 0.82rem; color: var(--warn); margin-bottom: 6px; }
+.allergen-block .allergen-note { font-size: 0.85rem; color: var(--ink-soft); }
+.allergen-chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.allergen-chip {
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--warn);
+  border: 1px solid #F0CFB8;
+}
+
+.qty-add-row { display: flex; align-items: stretch; gap: 10px; margin-bottom: 12px; }
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-soft);
+  border-radius: 999px;
+  padding: 4px 6px;
+  flex: none;
+}
+.qty-stepper button {
+  width: 32px; height: 32px; border-radius: 999px; border: none; background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12); font-size: 1.1rem; flex: none;
+}
+.qty-stepper span { min-width: 18px; text-align: center; font-weight: 700; }
 
 .modal-actions { display: flex; flex-direction: column; gap: 10px; }
 .btn-primary {
-  background: var(--ink);
+  background: var(--black);
   color: #fff;
   border: none;
   border-radius: 999px;
   padding: 13px 18px;
   font-weight: 700;
   font-size: 0.95rem;
+  flex: 1;
 }
-.btn-primary:hover { background: var(--accent); }
+.btn-primary:hover { background: var(--black-hover); }
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--line);
@@ -285,7 +316,7 @@ a { color: inherit; }
   justify-content: center;
   gap: 6px;
 }
-.btn-ghost:hover { border-color: var(--accent); color: var(--accent-dark); }
+.btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
 
 /* ── Cart drawer ────────────────────────────────────────────────────── */
 .drawer {
@@ -304,7 +335,7 @@ a { color: inherit; }
 .drawer.open { transform: translateX(0); }
 .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
 .drawer-header h3 { margin: 0; }
-.drawer-close { background: var(--bg); border: none; border-radius: 999px; width: 32px; height: 32px; font-size: 1rem; }
+.drawer-close { background: var(--surface-soft); border: none; border-radius: 999px; width: 32px; height: 32px; font-size: 1rem; }
 .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
 .cart-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .cart-item img { width: 58px; height: 58px; object-fit: cover; border-radius: 10px; }
@@ -317,6 +348,29 @@ a { color: inherit; }
 
 .cart-empty { text-align: center; color: var(--ink-soft); padding: 60px 10px; }
 
+/* ── Cart suggestions (missing drink / first course, etc.) ─────────────── */
+.cart-suggest { margin: 4px 0 18px; }
+.cart-suggest-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 8px; }
+.cart-suggest-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.cart-suggest-row::-webkit-scrollbar { display: none; }
+.cart-suggest-card {
+  flex: none;
+  width: 128px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+}
+.cart-suggest-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+.cart-suggest-card .info { padding: 8px 9px 10px; }
+.cart-suggest-card .name { font-size: 0.76rem; font-weight: 700; line-height: 1.25; margin-bottom: 6px; min-height: 2.5em; }
+.cart-suggest-card .row { display: flex; align-items: center; justify-content: space-between; }
+.cart-suggest-card .price { font-size: 0.76rem; font-weight: 700; }
+.cart-suggest-card .add {
+  width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--black); color: #fff; font-size: 0.9rem; flex: none;
+}
+
 .field-group { margin-top: 6px; margin-bottom: 14px; }
 .field-group label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.03em; }
 .field-group input, .field-group textarea, .field-group select {
@@ -326,7 +380,7 @@ a { color: inherit; }
   padding: 10px 12px;
   font-size: 0.92rem;
   font-family: inherit;
-  background: var(--bg);
+  background: var(--surface-soft);
 }
 .field-group textarea { resize: vertical; min-height: 60px; }
 
@@ -338,50 +392,34 @@ a { color: inherit; }
 .order-success { text-align: center; padding: 30px 10px; }
 .order-success .big-check { font-size: 2.6rem; margin-bottom: 10px; }
 .order-success h3 { margin: 0 0 6px; }
-.order-success .order-id { font-family: monospace; background: var(--bg); border-radius: 999px; padding: 6px 14px; display: inline-block; margin: 10px 0; font-weight: 700; }
+.order-success .order-id { font-family: monospace; background: var(--surface-soft); border-radius: 999px; padding: 6px 14px; display: inline-block; margin: 10px 0; font-weight: 700; }
 
-/* ── Cart widget (round, black — same style as the chat button) ───────── */
-.cart-toggle {
-  position: fixed;
-  bottom: 22px;
-  left: 22px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #000;
-  color: #fff;
-  border: none;
-  box-shadow: var(--shadow-lg);
-  font-size: 1.5rem;
-  z-index: 120;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s ease;
-}
-.cart-toggle:hover { transform: scale(1.06); }
-
-/* ── Chat widget ────────────────────────────────────────────────────── */
-.chat-toggle {
+/* ── Floating action buttons (cart + chat, side by side) ───────────────── */
+.fab-row {
   position: fixed;
   bottom: 22px;
   right: 22px;
-  width: 60px;
-  height: 60px;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fab {
+  position: relative;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
   border: none;
   box-shadow: var(--shadow-lg);
-  font-size: 1.5rem;
-  z-index: 120;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.15s ease;
 }
-.chat-toggle:hover { transform: scale(1.06); }
-.chat-toggle .dot {
+.fab:hover { transform: scale(1.06); }
+.fab.cart-toggle { background: var(--black); color: #fff; }
+.fab.chat-toggle { background: var(--accent); color: #fff; }
+.fab.chat-toggle .dot {
   position: absolute;
   top: 4px; right: 4px;
   width: 12px; height: 12px;
@@ -392,7 +430,7 @@ a { color: inherit; }
 
 .chat-panel {
   position: fixed;
-  bottom: 96px;
+  bottom: 90px;
   right: 22px;
   width: min(370px, calc(100vw - 32px));
   height: min(560px, calc(100vh - 140px));
@@ -410,6 +448,46 @@ a { color: inherit; }
 }
 .chat-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
 
+/* ── Idle "need help?" nudge ───────────────────────────────────────────── */
+.idle-nudge {
+  position: fixed;
+  bottom: 90px;
+  right: 22px;
+  z-index: 119;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  padding: 14px 34px 14px 16px;
+  max-width: min(260px, calc(100vw - 44px));
+  animation: nudge-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.idle-nudge.hidden { display: none; }
+@keyframes nudge-in {
+  0% { opacity: 0; transform: translateY(14px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.idle-nudge-text { font-size: 0.88rem; font-weight: 600; margin-bottom: 10px; }
+.idle-nudge-btn {
+  background: var(--black);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.idle-nudge-btn:hover { background: var(--black-hover); }
+.idle-nudge-close {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: var(--surface-soft);
+  border: none;
+  border-radius: 50%;
+  width: 22px; height: 22px;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
 .chat-header {
   background: var(--ink);
   color: #fff;
@@ -426,7 +504,7 @@ a { color: inherit; }
 
 .chat-messages { flex: 1; overflow-y: auto; padding: 14px 14px 8px; display: flex; flex-direction: column; gap: 10px; }
 .msg { max-width: 84%; padding: 9px 13px; border-radius: 14px; font-size: 0.87rem; white-space: pre-wrap; line-height: 1.4; }
-.msg.bot { align-self: flex-start; background: var(--bg); border-bottom-left-radius: 4px; }
+.msg.bot { align-self: flex-start; background: var(--surface-soft); border-bottom-left-radius: 4px; }
 .msg.user { align-self: flex-end; background: var(--ink); color: #fff; border-bottom-right-radius: 4px; }
 .msg.typing { display: flex; gap: 4px; align-items: center; }
 .msg.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-soft); animation: blink 1.2s infinite ease-in-out; }
@@ -453,7 +531,7 @@ a { color: inherit; }
   border-radius: 999px;
   padding: 10px 14px;
   font-size: 0.88rem;
-  background: var(--bg);
+  background: var(--surface-soft);
   outline: none;
 }
 .chat-input-row button {
