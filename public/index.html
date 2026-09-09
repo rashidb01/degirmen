@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Degirmen — электронное меню</title>
-  <link rel="icon" href="/assets/logo.svg" />
+  <link rel="icon" href="/assets/favicon.png" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
@@ -12,16 +12,9 @@
   <header class="site-header">
     <div class="header-row">
       <div class="brand">
-        <img src="/assets/logo.svg" alt="Degirmen" />
-        <div>
-          <div class="brand-name">Degirmen</div>
-          <div class="brand-tagline">электронное меню</div>
-        </div>
+        <img class="brand-logo" src="/assets/logo-full.png" alt="Degirmen" />
+        <div class="brand-tagline">электронное меню</div>
       </div>
-      <div class="header-spacer"></div>
-      <button class="cart-btn" id="cartBtn" type="button">
-        🛒 Корзина <span class="cart-count hidden" id="cartCount">0</span>
-      </button>
     </div>
     <nav class="category-nav" id="categoryNav" aria-label="Категории меню"></nav>
   </header>
@@ -65,6 +58,11 @@
     </aside>
   </div>
 
+  <!-- Cart widget -->
+  <button class="cart-toggle" id="cartBtn" type="button" aria-label="Открыть корзину">
+    🛒<span class="cart-count hidden" id="cartCount">0</span>
+  </button>
+
   <!-- Chat widget -->
   <button class="chat-toggle" id="chatToggle" type="button" aria-label="Открыть чат-помощника">
     💬<span class="dot"></span>
@@ -72,7 +70,7 @@
 
   <div class="chat-panel" id="chatPanel">
     <div class="chat-header">
-      <img src="/assets/logo.svg" alt="" />
+      <img src="/assets/logo-icon.png" alt="" />
       <div>
         <div class="title">Помощник Degirmen</div>
         <div class="subtitle">Спросите про блюда, аллергены, замену</div>

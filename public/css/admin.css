@@ -18,7 +18,7 @@
   width: 100%;
   max-width: 320px;
 }
-.login-card img { margin: 0 auto 10px; }
+.login-card img.login-logo { height: 48px; width: auto; margin: 0 auto 10px; }
 .login-card h2 { margin: 0 0 4px; font-size: 1.2rem; }
 .login-card p { color: var(--ink-soft); font-size: 0.85rem; margin: 0 0 16px; }
 .login-card input {
@@ -42,7 +42,7 @@
   border-bottom: 1px solid var(--line);
 }
 .admin-header .brand { display: flex; align-items: center; gap: 10px; }
-.admin-header .brand img { width: 30px; height: 30px; }
+.admin-header .brand img.admin-brand-icon { height: 28px; width: auto; }
 .admin-header .brand-name { font-weight: 700; }
 
 .admin-tabs {
