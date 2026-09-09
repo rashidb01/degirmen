@@ -1,0 +1,37 @@
+[
+  {
+    "id": "breakfast",
+    "name": "Завтраки",
+    "order": 1
+  },
+  {
+    "id": "soups",
+    "name": "Супы",
+    "order": 2
+  },
+  {
+    "id": "salads",
+    "name": "Салаты",
+    "order": 3
+  },
+  {
+    "id": "mains",
+    "name": "Горячие блюда",
+    "order": 4
+  },
+  {
+    "id": "pizza",
+    "name": "Пицца",
+    "order": 5
+  },
+  {
+    "id": "desserts",
+    "name": "Десерты",
+    "order": 6
+  },
+  {
+    "id": "drinks",
+    "name": "Напитки",
+    "order": 7
+  }
+]

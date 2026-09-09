@@ -1,0 +1,242 @@
+[
+  {
+    "id": "d-pancakes",
+    "categoryId": "breakfast",
+    "name": "Панкейки с ягодами",
+    "description": "Пышные панкейки, кленовый сироп, свежие сезонные ягоды и сливочное масло.",
+    "price": 2200,
+    "image": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "глютен",
+      "молоко",
+      "яйца"
+    ],
+    "tags": [
+      "вегетарианское",
+      "хит продаж"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-omelette",
+    "categoryId": "breakfast",
+    "name": "Омлет с овощами и сыром",
+    "description": "Воздушный омлет из трёх яиц с болгарским перцем, шпинатом и сыром чеддер.",
+    "price": 1900,
+    "image": "https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "яйца",
+      "молоко"
+    ],
+    "tags": [
+      "вегетарианское"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-tomyum",
+    "categoryId": "soups",
+    "name": "Том-ям с креветками",
+    "description": "Острый тайский суп на кокосовом молоке с креветками, грибами и лемонграссом.",
+    "price": 2800,
+    "image": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "морепродукты",
+      "рыба"
+    ],
+    "tags": [
+      "острое",
+      "хит продаж"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-mushroom-soup",
+    "categoryId": "soups",
+    "name": "Крем-суп из белых грибов",
+    "description": "Нежный крем-суп из белых грибов со сливками и гренками.",
+    "price": 2100,
+    "image": "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "молоко",
+      "глютен"
+    ],
+    "tags": [
+      "вегетарианское"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-caesar",
+    "categoryId": "salads",
+    "name": "Салат Цезарь с курицей",
+    "description": "Классический цезарь с куриной грудкой, пармезаном, гренками и соусом цезарь.",
+    "price": 2600,
+    "image": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "глютен",
+      "молоко",
+      "яйца",
+      "рыба"
+    ],
+    "tags": [
+      "хит продаж"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-greek",
+    "categoryId": "salads",
+    "name": "Греческий салат",
+    "description": "Свежие овощи, оливки, сыр фета и оливковое масло.",
+    "price": 2200,
+    "image": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "молоко"
+    ],
+    "tags": [
+      "вегетарианское",
+      "веганское-опция"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-steak",
+    "categoryId": "mains",
+    "name": "Стейк рибай",
+    "description": "Мраморная говядина рибай на гриле, овощи гриль, соус на выбор.",
+    "price": 6900,
+    "image": "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=60",
+    "allergens": [],
+    "tags": [
+      "хит продаж"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-salmon",
+    "categoryId": "mains",
+    "name": "Лосось на пару с овощами",
+    "description": "Филе лосося на пару, сезонные овощи, лимонно-масляный соус.",
+    "price": 4900,
+    "image": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "рыба"
+    ],
+    "tags": [
+      "без глютена"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-pasta",
+    "categoryId": "mains",
+    "name": "Паста Карбонара",
+    "description": "Спагетти, бекон, сливочный соус, пармезан, яичный желток.",
+    "price": 3200,
+    "image": "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "глютен",
+      "молоко",
+      "яйца"
+    ],
+    "tags": [],
+    "available": true
+  },
+  {
+    "id": "d-margherita",
+    "categoryId": "pizza",
+    "name": "Пицца Маргарита",
+    "description": "Томатный соус, моцарелла, свежий базилик, оливковое масло.",
+    "price": 3400,
+    "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "глютен",
+      "молоко"
+    ],
+    "tags": [
+      "вегетарианское"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-pepperoni",
+    "categoryId": "pizza",
+    "name": "Пицца Пепперони",
+    "description": "Томатный соус, моцарелла, острая пепперони.",
+    "price": 3700,
+    "image": "https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "глютен",
+      "молоко"
+    ],
+    "tags": [
+      "острое"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-cheesecake",
+    "categoryId": "desserts",
+    "name": "Чизкейк Нью-Йорк",
+    "description": "Классический чизкейк на песочной основе с ягодным соусом.",
+    "price": 2100,
+    "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "глютен",
+      "молоко",
+      "яйца"
+    ],
+    "tags": [
+      "хит продаж"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-chocolate-fondant",
+    "categoryId": "desserts",
+    "name": "Шоколадный фондан",
+    "description": "Тёплый шоколадный кекс с жидкой начинкой и шариком мороженого.",
+    "price": 2300,
+    "image": "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "глютен",
+      "молоко",
+      "яйца",
+      "орехи"
+    ],
+    "tags": [
+      "новинка"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-latte",
+    "categoryId": "drinks",
+    "name": "Латте",
+    "description": "Эспрессо с нежной молочной пенкой.",
+    "price": 1400,
+    "image": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=60",
+    "allergens": [
+      "молоко"
+    ],
+    "tags": [
+      "вегетарианское"
+    ],
+    "available": true
+  },
+  {
+    "id": "d-lemonade",
+    "categoryId": "drinks",
+    "name": "Домашний лимонад",
+    "description": "Освежающий лимонад с мятой и цитрусовыми.",
+    "price": 1500,
+    "image": "https://images.unsplash.com/photo-1437418747212-8d9709afab22?auto=format&fit=crop&w=800&q=60",
+    "allergens": [],
+    "tags": [
+      "веганское",
+      "без глютена"
+    ],
+    "available": true
+  }
+]

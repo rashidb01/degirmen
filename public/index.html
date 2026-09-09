@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Degirmen — электронное меню</title>
+  <link rel="icon" href="/assets/logo.svg" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-row">
+      <div class="brand">
+        <img src="/assets/logo.svg" alt="Degirmen" />
+        <div>
+          <div class="brand-name">Degirmen</div>
+          <div class="brand-tagline">электронное меню</div>
+        </div>
+      </div>
+      <div class="header-spacer"></div>
+      <button class="cart-btn" id="cartBtn" type="button">
+        🛒 Корзина <span class="cart-count hidden" id="cartCount">0</span>
+      </button>
+    </div>
+    <nav class="category-nav" id="categoryNav" aria-label="Категории меню"></nav>
+  </header>
+
+  <section class="hero">
+    <h1>Меню Degirmen</h1>
+    <p>Выбирайте блюда, спрашивайте у AI-помощника про состав и аллергены, и оформляйте заказ прямо здесь.</p>
+    <div class="search-box">
+      <span>🔎</span>
+      <input type="text" id="searchInput" placeholder="Найти блюдо…" />
+    </div>
+  </section>
+
+  <main class="menu-wrap" id="menuWrap">
+    <div class="empty-state">Загружаем меню…</div>
+  </main>
+
+  <footer class="site-footer">
+    <div>Degirmen · электронное меню и приём заказов</div>
+    <div class="roadmap">Скоро: оплата через Kaspi и синхронизация заказов с R-Keeper</div>
+  </footer>
+
+  <!-- Dish detail modal -->
+  <div class="overlay" id="dishOverlay">
+    <div class="modal-card" id="dishModal"></div>
+  </div>
+
+  <!-- Cart drawer -->
+  <div class="overlay" id="cartOverlay" style="align-items:stretch; justify-content:flex-end;">
+    <aside class="drawer" id="cartDrawer">
+      <div class="drawer-header">
+        <h3>Ваш заказ</h3>
+        <button class="drawer-close" id="cartCloseBtn" type="button">✕</button>
+      </div>
+      <div class="drawer-body" id="cartBody"></div>
+      <div class="drawer-footer hidden" id="cartFooter">
+        <div class="cart-total-row"><span>Итого</span><span id="cartTotal">0 ₸</span></div>
+        <button class="btn-primary" id="checkoutBtn" type="button" style="width:100%">Оформить заказ</button>
+        <div class="payment-note">Оплата на кассе · онлайн-оплата через Kaspi скоро появится</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Chat widget -->
+  <button class="chat-toggle" id="chatToggle" type="button" aria-label="Открыть чат-помощника">
+    💬<span class="dot"></span>
+  </button>
+
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <img src="/assets/logo.svg" alt="" />
+      <div>
+        <div class="title">Помощник Degirmen</div>
+        <div class="subtitle">Спросите про блюда, аллергены, замену</div>
+      </div>
+      <div class="chat-header-spacer"></div>
+      <button class="chat-close" id="chatCloseBtn" type="button">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-suggestions" id="chatSuggestions"></div>
+    <form class="chat-input-row" id="chatForm">
+      <input type="text" id="chatInput" placeholder="Напишите сообщение…" autocomplete="off" />
+      <button type="submit" aria-label="Отправить">➤</button>
+    </form>
+    <div class="chat-notice" id="chatNotice"></div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/chat.js"></script>
+</body>
+</html>

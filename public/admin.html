@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Degirmen — админ-панель</title>
+  <link rel="icon" href="/assets/logo.svg" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body class="admin-body">
+
+  <div id="loginGate" class="login-gate">
+    <div class="login-card">
+      <img src="/assets/logo.svg" alt="" width="40" height="40" />
+      <h2>Degirmen · Админка</h2>
+      <p>Введите пароль администратора</p>
+      <input type="password" id="adminKeyInput" placeholder="Пароль" />
+      <button class="btn-primary" id="loginBtn" type="button">Войти</button>
+      <div id="loginError" class="login-error hidden">Неверный пароль</div>
+    </div>
+  </div>
+
+  <div id="adminApp" class="admin-app hidden">
+    <header class="admin-header">
+      <div class="brand">
+        <img src="/assets/logo.svg" alt="" />
+        <div class="brand-name">Degirmen · Админка</div>
+      </div>
+      <div class="header-spacer"></div>
+      <a href="/" class="btn-ghost" style="text-decoration:none">← На сайт</a>
+      <button class="btn-ghost" id="logoutBtn" type="button">Выйти</button>
+    </header>
+
+    <nav class="admin-tabs">
+      <button class="admin-tab active" data-tab="orders">Заказы</button>
+      <button class="admin-tab" data-tab="dishes">Блюда</button>
+      <button class="admin-tab" data-tab="categories">Категории</button>
+    </nav>
+
+    <main class="admin-main">
+
+      <section id="tab-orders" class="admin-panel">
+        <div class="panel-head">
+          <h2>Заказы</h2>
+          <button class="btn-ghost" id="refreshOrdersBtn" type="button">↻ Обновить</button>
+        </div>
+        <div id="ordersList" class="orders-list"></div>
+      </section>
+
+      <section id="tab-dishes" class="admin-panel hidden">
+        <div class="panel-head"><h2>Блюда</h2></div>
+
+        <form id="dishForm" class="admin-form">
+          <input type="hidden" id="dishId" />
+          <div class="form-grid">
+            <div class="field-group">
+              <label>Название</label>
+              <input type="text" id="dishName" required />
+            </div>
+            <div class="field-group">
+              <label>Категория</label>
+              <select id="dishCategory"></select>
+            </div>
+            <div class="field-group">
+              <label>Цена (₸)</label>
+              <input type="number" id="dishPrice" min="0" step="1" required />
+            </div>
+            <div class="field-group">
+              <label>Ссылка на фото (URL)</label>
+              <input type="text" id="dishImage" placeholder="https://…" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Или загрузить фото</label>
+            <input type="file" id="dishImageFile" accept="image/*" />
+          </div>
+          <div class="field-group">
+            <label>Описание</label>
+            <textarea id="dishDescription"></textarea>
+          </div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label>Аллергены (через запятую)</label>
+              <input type="text" id="dishAllergens" placeholder="глютен, молоко, орехи" />
+            </div>
+            <div class="field-group">
+              <label>Теги (через запятую)</label>
+              <input type="text" id="dishTags" placeholder="хит продаж, острое, веганское" />
+            </div>
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="dishAvailable" checked /> В наличии
+          </label>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit" id="dishSubmitBtn">Добавить блюдо</button>
+            <button class="btn-ghost hidden" type="button" id="dishCancelEditBtn">Отменить редактирование</button>
+          </div>
+        </form>
+
+        <div id="dishesList" class="dishes-admin-list"></div>
+      </section>
+
+      <section id="tab-categories" class="admin-panel hidden">
+        <div class="panel-head"><h2>Категории</h2></div>
+        <form id="categoryForm" class="admin-form inline-form">
+          <input type="text" id="categoryName" placeholder="Название категории" required />
+          <button class="btn-primary" type="submit">Добавить</button>
+        </form>
+        <div id="categoriesList" class="categories-admin-list"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
