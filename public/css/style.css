@@ -135,7 +135,7 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--surface-soft);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 11px 14px;
