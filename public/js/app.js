@@ -51,11 +51,6 @@
   }
 
   // ── menu render ───────────────────────────────────────────────────────
-  function dishAllergenLine(dish) {
-    if (!dish.allergens || dish.allergens.length === 0) return window.I18N.t('allergensNone');
-    return `<b>${window.I18N.t('allergensLabel')}</b> ${dish.allergens.map(window.I18N.trAllergen).join(', ')}`;
-  }
-
   function dishCard(dish) {
     const unavailable = dish.available === false;
     const name = window.I18N.trDishName(dish);
@@ -72,7 +67,6 @@
       <div class="dish-body">
         <div class="dish-name">${escapeHtml(name)}</div>
         <div class="dish-desc">${escapeHtml(window.I18N.trDishDescription(dish))}</div>
-        <div class="dish-allergens">${dishAllergenLine(dish)}</div>
         <div class="dish-footer">
           <div class="dish-price">${money(dish.price)}</div>
           <button class="add-btn" type="button" aria-label="${escapeHtml(window.I18N.t('addToCartAriaLabel'))}">+</button>
