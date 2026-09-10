@@ -194,7 +194,7 @@ a { color: inherit; }
   letter-spacing: 0.02em;
 }
 .dish-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.dish-name { font-weight: 700; font-size: 1rem; }
+.dish-name { font-weight: 700; font-size: 1rem; color: var(--ink); }
 .dish-desc { font-size: 0.82rem; color: var(--ink-soft); flex: 1; }
 .dish-allergens { font-size: 0.72rem; color: var(--ink-soft); }
 .dish-allergens b { color: var(--accent-dark); }
@@ -366,7 +366,7 @@ a { color: inherit; }
 }
 .quiz-result-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
 .quiz-result-card .info { padding: 10px 11px 12px; }
-.quiz-result-card .name { font-size: 0.82rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; min-height: 2.5em; }
+.quiz-result-card .name { font-size: 0.82rem; font-weight: 700; line-height: 1.25; margin-bottom: 8px; min-height: 2.5em; color: var(--ink); }
 .quiz-result-card .row { display: flex; align-items: center; justify-content: space-between; }
 .quiz-result-card .price { font-size: 0.82rem; font-weight: 700; }
 .quiz-result-card .add {
@@ -395,7 +395,7 @@ a { color: inherit; }
 .cart-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .cart-item img { width: 58px; height: 58px; object-fit: cover; border-radius: 10px; }
 .cart-item-info { flex: 1; }
-.cart-item-name { font-weight: 700; font-size: 0.92rem; }
+.cart-item-name { font-weight: 700; font-size: 0.92rem; color: var(--ink); }
 .cart-item-price { color: var(--ink-soft); font-size: 0.82rem; }
 .cart-item-controls { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 .cart-item-controls button:not(.cart-item-remove) { width: 24px; height: 24px; border-radius: 999px; border: 1px solid var(--line); background: #fff; }
@@ -419,7 +419,7 @@ a { color: inherit; }
 }
 .cart-suggest-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
 .cart-suggest-card .info { padding: 8px 9px 10px; }
-.cart-suggest-card .name { font-size: 0.76rem; font-weight: 700; line-height: 1.25; margin-bottom: 6px; min-height: 2.5em; }
+.cart-suggest-card .name { font-size: 0.76rem; font-weight: 700; line-height: 1.25; margin-bottom: 6px; min-height: 2.5em; color: var(--ink); }
 .cart-suggest-card .row { display: flex; align-items: center; justify-content: space-between; }
 .cart-suggest-card .price { font-size: 0.76rem; font-weight: 700; }
 .cart-suggest-card .add {
@@ -487,8 +487,8 @@ a { color: inherit; }
   position: fixed;
   bottom: 90px;
   right: 22px;
-  width: min(370px, calc(100vw - 32px));
-  height: min(560px, calc(100dvh - 140px));
+  width: min(400px, calc(100vw - 32px));
+  height: min(620px, calc(100dvh - 140px));
   background: var(--surface);
   border-radius: 20px;
   box-shadow: var(--shadow-lg);
@@ -502,23 +502,6 @@ a { color: inherit; }
   transition: all 0.18s ease;
 }
 .chat-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
-
-/* On phones the floating card becomes a full-screen chat, like a normal
-   chat app — avoids the on-screen keyboard overlapping/squashing a small
-   floating panel anchored near the bottom of the screen. */
-@media (max-width: 480px) {
-  .chat-panel {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100dvh;
-    border-radius: 0;
-    transform: translateY(12px);
-  }
-  .chat-panel.open { transform: translateY(0); }
-}
 
 /* ── Idle "need help?" nudge ───────────────────────────────────────────── */
 .idle-nudge {

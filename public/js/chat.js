@@ -17,7 +17,9 @@
     panel.classList.add('open');
     opened = true;
     if (history.length === 0) greet();
-    input.focus();
+    // Don't auto-focus the input — that pops the on-screen keyboard up
+    // immediately on mobile. Let the guest open it themselves by tapping
+    // the field.
     window.Degirmen?.cancelIdleNudge();
   }
   function close() { panel.classList.remove('open'); }
