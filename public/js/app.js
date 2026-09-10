@@ -376,7 +376,6 @@
     saveCart();
     updateCartBadge();
     renderCart();
-    hideIdleNudge();
   }
   function setQty(dishId, qty) {
     if (qty <= 0) delete state.cart[dishId];
@@ -384,9 +383,6 @@
     saveCart();
     updateCartBadge();
     renderCart();
-    // Cart emptied out again (guest removed everything) — give the nudge
-    // another chance to offer help after a fresh minute of inactivity.
-    if (cartCount() === 0) scheduleIdleNudge();
   }
   function cartCount() { return Object.values(state.cart).reduce((a, b) => a + b, 0); }
   function cartTotal() {
@@ -543,9 +539,6 @@
       saveCart();
       updateCartBadge();
       showOrderSuccess(order);
-      // Cart is empty again after this order — let the nudge offer help
-      // with the next round if the guest goes quiet again.
-      scheduleIdleNudge();
     } catch (e) {
       alert(window.I18N.t('orderFailed'));
       btn.disabled = false;
@@ -570,34 +563,15 @@
   }
 
   // ── idle "need help choosing?" nudge ────────────────────────────────────
-  // Re-arms every time the cart goes back to empty (fresh page load, guest
-  // cleared their cart, or right after checkout) — not just once per session —
-  // so it can help again on a second round of ordering, too.
+  // Unconditional: fires once, exactly 60s after the page loads, no matter
+  // what's in the cart, whether the guest is chatting, or anything else.
   const NUDGE_DELAY_MS = 60000;
-  const NUDGE_OPTED_OUT_KEY = 'degirmen_nudge_opted_out';
   const idleNudge = document.getElementById('idleNudge');
-  let idleTimer = null;
 
-  function scheduleIdleNudge() {
-    if (sessionStorage.getItem(NUDGE_OPTED_OUT_KEY)) return;
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-      if (cartCount() === 0) showIdleNudge();
-    }, NUDGE_DELAY_MS);
-  }
   function showIdleNudge() { idleNudge.classList.remove('hidden'); }
-  // Hides/cancels the nudge for now (e.g. the guest just added something, or
-  // opened the chat themselves) — it can still come back later.
-  function hideIdleNudge() {
-    idleNudge.classList.add('hidden');
-    clearTimeout(idleTimer);
-  }
-  // Explicit "no thanks" (✕) — don't offer it again for the rest of this visit.
-  function optOutOfIdleNudge() {
-    hideIdleNudge();
-    try { sessionStorage.setItem(NUDGE_OPTED_OUT_KEY, '1'); } catch {}
-  }
-  document.getElementById('idleNudgeClose').addEventListener('click', optOutOfIdleNudge);
+  function hideIdleNudge() { idleNudge.classList.add('hidden'); }
+
+  document.getElementById('idleNudgeClose').addEventListener('click', hideIdleNudge);
   document.getElementById('idleNudgeBtn').addEventListener('click', () => {
     hideIdleNudge();
     openQuiz();
@@ -608,10 +582,10 @@
     getMenuContext: () => ({ categories: state.categories, dishes: state.dishes }),
     addToCart,
     money,
-    cancelIdleNudge: hideIdleNudge,
+    cancelIdleNudge: () => {}, // nudge is unconditional now — chat opening no longer cancels it
   };
 
-  scheduleIdleNudge();
+  setTimeout(showIdleNudge, NUDGE_DELAY_MS);
 
   loadMenu().catch((e) => {
     document.getElementById('menuWrap').innerHTML = `<div class="empty-state">${escapeHtml(window.I18N.t('loadMenuError'))}</div>`;
