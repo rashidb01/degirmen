@@ -166,15 +166,6 @@
         <div class="modal-price">${money(dish.price)}</div>
         <div class="modal-desc">${escapeHtml(window.I18N.trDishDescription(dish))}</div>
         ${(dish.tags || []).length ? `<div class="tag-row">${dish.tags.map((t) => `<span class="tag-pill">${escapeHtml(window.I18N.trTag(t))}</span>`).join('')}</div>` : ''}
-        <div class="allergen-block">
-          <div class="allergen-icon">⚠️</div>
-          <div>
-            <strong>${escapeHtml(window.I18N.t('allergensHeading'))}</strong>
-            ${dish.allergens && dish.allergens.length
-              ? `<div class="allergen-chip-row">${dish.allergens.map((a) => `<span class="allergen-chip">${escapeHtml(window.I18N.trAllergen(a))}</span>`).join('')}</div>`
-              : `<div class="allergen-note">${escapeHtml(window.I18N.t('allergensNoneModal'))}</div>`}
-          </div>
-        </div>
         <div class="qty-add-row">
           <div class="qty-stepper">
             <button type="button" id="qtyMinus">−</button>
