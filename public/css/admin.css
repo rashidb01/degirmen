@@ -84,6 +84,56 @@
 .translations-block summary { cursor: pointer; padding: 10px 0; font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); }
 .translations-block[open] summary { color: var(--ink); }
 .translations-block .form-grid { margin-top: 4px; }
+.translations-block .auto-tag { font-weight: 400; text-transform: none; letter-spacing: normal; color: var(--ink-soft); font-size: 0.78rem; }
+
+.photo-upload {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 4 / 3;
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease;
+}
+.photo-upload:hover { border-color: var(--ink-soft); }
+.photo-upload img { width: 100%; height: 100%; object-fit: cover; }
+.photo-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.photo-upload-placeholder .plus {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--ink);
+}
+.photo-upload-change {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 0;
+}
 
 /* dishes admin list */
 .dishes-admin-list { display: flex; flex-direction: column; gap: 10px; }

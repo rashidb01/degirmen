@@ -172,6 +172,64 @@ app.post('/api/admin/upload', requireAdmin, upload.single('image'), (req, res) =
   res.status(201).json({ url: `/uploads/${req.file.filename}` });
 });
 
+// Auto-translate a dish/category name (+ optional description) from Russian
+// into Kazakh and English, for the admin UI's "translate for me" button.
+// Staff can still hand-edit the result afterwards — this only fills the
+// fields in, it never overwrites something already typed.
+app.post('/api/admin/translate', requireAdmin, async (req, res) => {
+  if (!GROQ_API_KEY) {
+    return res.status(503).json({ error: 'Translation is not configured (missing GROQ_API_KEY on the server)' });
+  }
+  const { name, description } = req.body || {};
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'name is required' });
+
+  try {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        temperature: 0.2,
+        max_tokens: 400,
+        reasoning_effort: 'low',
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: `Ты — переводчик меню ресторана. Переведи название блюда/категории (и описание, если оно дано) с русского на казахский и английский. Естественный ресторанный стиль, без транслитерации там, где есть нормальный перевод. Верни СТРОГО JSON без пояснений и без markdown, в формате:
+{"name_kk": "...", "name_en": "...", "description_kk": "...", "description_en": "..."}
+Если описание не передано — верни пустые строки "" для description_kk и description_en.`,
+          },
+          { role: 'user', content: JSON.stringify({ name, description: description || '' }) },
+        ],
+      }),
+    });
+    if (!groqRes.ok) {
+      const text = await groqRes.text().catch(() => '');
+      console.error('Groq translate error:', groqRes.status, text);
+      return res.status(502).json({ error: 'Translation provider error' });
+    }
+    const data = await groqRes.json();
+    const raw = data?.choices?.[0]?.message?.content?.trim() || '';
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      console.error('Translate: could not parse JSON:', raw);
+      return res.status(502).json({ error: 'Translation parse error' });
+    }
+    res.json({
+      name_kk: String(parsed.name_kk || '').trim(),
+      name_en: String(parsed.name_en || '').trim(),
+      description_kk: String(parsed.description_kk || '').trim(),
+      description_en: String(parsed.description_en || '').trim(),
+    });
+  } catch (e) {
+    console.error('Translate error:', e);
+    res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 // ─── orders ─────────────────────────────────────────────────────────────────
 // NOTE integration points for later:
 //   - rkeeper.pushOrderToRKeeper(order) -> see backend/integrations/rkeeper.js

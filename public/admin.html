@@ -53,6 +53,21 @@
 
         <form id="dishForm" class="admin-form">
           <input type="hidden" id="dishId" />
+          <input type="hidden" id="dishImage" />
+
+          <div class="field-group">
+            <label>Фото блюда</label>
+            <div class="photo-upload" id="dishPhotoUpload" role="button" tabindex="0">
+              <img id="dishPhotoPreview" class="hidden" alt="" />
+              <div class="photo-upload-placeholder" id="dishPhotoPlaceholder">
+                <span class="plus">+</span>
+                <span>Добавить фото</span>
+              </div>
+              <div class="photo-upload-change hidden" id="dishPhotoChange">Изменить фото</div>
+            </div>
+            <input type="file" id="dishImageFile" accept="image/*" class="hidden" />
+          </div>
+
           <div class="form-grid">
             <div class="field-group">
               <label>Название</label>
@@ -66,21 +81,13 @@
               <label>Цена (₸)</label>
               <input type="number" id="dishPrice" min="0" step="1" required />
             </div>
-            <div class="field-group">
-              <label>Ссылка на фото (URL)</label>
-              <input type="text" id="dishImage" placeholder="https://…" />
-            </div>
-          </div>
-          <div class="field-group">
-            <label>Или загрузить фото</label>
-            <input type="file" id="dishImageFile" accept="image/*" />
           </div>
           <div class="field-group">
             <label>Описание</label>
             <textarea id="dishDescription"></textarea>
           </div>
           <details class="translations-block">
-            <summary>Переводы на казахский / английский (необязательно)</summary>
+            <summary>Переводы на казахский / английский <span class="auto-tag">— переводятся сами, можно поправить</span></summary>
             <div class="form-grid">
               <div class="field-group">
                 <label>Название (KK)</label>
@@ -131,16 +138,16 @@
               <input type="text" id="categoryName" required />
             </div>
             <div class="field-group">
-              <label>Название (KK, необязательно)</label>
+              <label>Название (KK) — само переведётся</label>
               <input type="text" id="categoryNameKk" />
             </div>
             <div class="field-group">
-              <label>Название (EN, необязательно)</label>
+              <label>Название (EN) — само переведётся</label>
               <input type="text" id="categoryNameEn" />
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-primary" type="submit">Добавить</button>
+            <button class="btn-primary" type="submit" id="categorySubmitBtn">Добавить</button>
           </div>
         </form>
         <div id="categoriesList" class="categories-admin-list"></div>
