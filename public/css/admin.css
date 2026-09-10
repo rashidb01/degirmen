@@ -80,6 +80,11 @@
 .inline-form { display: flex; gap: 10px; align-items: flex-end; }
 .inline-form input { flex: 1; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; }
 
+.translations-block { margin-bottom: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 4px 14px; }
+.translations-block summary { cursor: pointer; padding: 10px 0; font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); }
+.translations-block[open] summary { color: var(--ink); }
+.translations-block .form-grid { margin-top: 4px; }
+
 /* dishes admin list */
 .dishes-admin-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-row {

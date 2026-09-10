@@ -91,11 +91,17 @@ app.get('/api/dishes/:id', (req, res) => {
 
 // ─── admin: categories ──────────────────────────────────────────────────────
 app.post('/api/admin/categories', requireAdmin, (req, res) => {
-  const { name, order } = req.body || {};
+  const { name, name_kk, name_en, order } = req.body || {};
   if (!name || !String(name).trim()) return res.status(400).json({ error: 'name is required' });
   const categories = readJSON(CATEGORIES_FILE);
   const id = String(name).trim().toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/(^-|-$)/g, '') || uuidv4();
-  const category = { id: categories.some((c) => c.id === id) ? `${id}-${uuidv4().slice(0, 4)}` : id, name: String(name).trim(), order: order ?? categories.length + 1 };
+  const category = {
+    id: categories.some((c) => c.id === id) ? `${id}-${uuidv4().slice(0, 4)}` : id,
+    name: String(name).trim(),
+    ...(name_kk ? { name_kk: String(name_kk).trim() } : {}),
+    ...(name_en ? { name_en: String(name_en).trim() } : {}),
+    order: order ?? categories.length + 1,
+  };
   categories.push(category);
   writeJSON(CATEGORIES_FILE, categories);
   res.status(201).json(category);
@@ -119,7 +125,7 @@ app.delete('/api/admin/categories/:id', requireAdmin, (req, res) => {
 
 // ─── admin: dishes ──────────────────────────────────────────────────────────
 app.post('/api/admin/dishes', requireAdmin, (req, res) => {
-  const { name, description, price, categoryId, image, allergens, tags, available } = req.body || {};
+  const { name, name_kk, name_en, description, description_kk, description_en, price, categoryId, image, allergens, tags, available } = req.body || {};
   if (!name || !String(name).trim()) return res.status(400).json({ error: 'name is required' });
   if (price == null || isNaN(Number(price))) return res.status(400).json({ error: 'price must be a number' });
   const dishes = readJSON(DISHES_FILE);
@@ -127,7 +133,11 @@ app.post('/api/admin/dishes', requireAdmin, (req, res) => {
     id: `d-${uuidv4()}`,
     categoryId: categoryId || null,
     name: String(name).trim(),
+    ...(name_kk ? { name_kk: String(name_kk).trim() } : {}),
+    ...(name_en ? { name_en: String(name_en).trim() } : {}),
     description: description || '',
+    ...(description_kk ? { description_kk: String(description_kk).trim() } : {}),
+    ...(description_en ? { description_en: String(description_en).trim() } : {}),
     price: Number(price),
     image: image || '',
     allergens: Array.isArray(allergens) ? allergens : [],
@@ -240,22 +250,29 @@ app.patch('/api/admin/orders/:id', requireAdmin, (req, res) => {
 // ─── AI chat assistant ──────────────────────────────────────────────────────
 // The assistant is grounded in the live menu (name/description/price/allergens/tags)
 // so it can answer allergen questions and suggest a substitute dish from the real menu.
-function buildMenuContext() {
+function buildMenuContext(lang) {
   const categories = readJSON(CATEGORIES_FILE);
   const dishes = readJSON(DISHES_FILE);
-  const catName = (id) => categories.find((c) => c.id === id)?.name || id;
+  const field = (obj, base) => (lang && lang !== 'ru' && obj[`${base}_${lang}`]) || obj[base] || '';
+  const catName = (id) => {
+    const cat = categories.find((c) => c.id === id);
+    return cat ? field(cat, 'name') : id;
+  };
   const lines = dishes
     .filter((d) => d.available !== false)
     .map((d) => {
       const allergens = d.allergens?.length ? `аллергены: ${d.allergens.join(', ')}` : 'аллергены: нет данных';
       const tags = d.tags?.length ? `; теги: ${d.tags.join(', ')}` : '';
-      return `- [${d.id}] "${d.name}" (${catName(d.categoryId)}), ${d.price} тг. ${d.description || ''} ${allergens}${tags}`;
+      return `- [${d.id}] "${field(d, 'name')}" (${catName(d.categoryId)}), ${d.price} тг. ${field(d, 'description')} ${allergens}${tags}`;
     });
   return lines.join('\n');
 }
 
-const CHAT_SYSTEM_PROMPT = (menuContext) => `Ты — AI-консультант ресторана "Degirmen" на сайте с электронным меню. Твоя единственная
+const LANG_NAMES = { ru: 'русском', kk: 'казахском', en: 'английском' };
+
+const CHAT_SYSTEM_PROMPT = (menuContext, lang) => `Ты — AI-консультант ресторана "Degirmen" на сайте с электронным меню. Твоя единственная
 работа — помогать гостям с выбором блюд ИЗ ЭТОГО МЕНЮ. Ты не универсальный ассистент.
+${lang && LANG_NAMES[lang] ? `Сайт сейчас переключён на ${LANG_NAMES[lang]} язык — отвечай ТОЛЬКО на ${LANG_NAMES[lang]} языке, независимо от языка вопроса гостя.` : 'Отвечай на языке гостя (обычно русский).'}
 
 Строго в рамках темы (еда/меню/заказ этого ресторана) делай следующее:
 1. Отвечай на вопросы про блюда: состав, аллергены, острота, калорийность (если известно), время готовки.
@@ -281,16 +298,17 @@ app.post('/api/chat', async (req, res) => {
   if (!GROQ_API_KEY) {
     return res.status(503).json({ error: 'AI chat is not configured (missing GROQ_API_KEY on the server)' });
   }
-  const { messages } = req.body || {};
+  const { messages, lang } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages must be a non-empty array' });
   }
   const safeMessages = messages
     .filter((m) => m && typeof m.content === 'string' && ['user', 'assistant'].includes(m.role))
     .slice(-20);
+  const safeLang = ['ru', 'kk', 'en'].includes(lang) ? lang : null;
 
   try {
-    const menuContext = buildMenuContext();
+    const menuContext = buildMenuContext(safeLang);
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -305,7 +323,7 @@ app.post('/api/chat', async (req, res) => {
         // "thinking" before the visible reply. Keep that budget small so the
         // actual answer doesn't get starved (empty content -> our fallback line).
         reasoning_effort: 'low',
-        messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT(menuContext) }, ...safeMessages],
+        messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT(menuContext, safeLang) }, ...safeMessages],
       }),
     });
 

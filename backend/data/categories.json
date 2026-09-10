@@ -1,37 +1,9 @@
 [
-  {
-    "id": "breakfast",
-    "name": "Завтраки",
-    "order": 1
-  },
-  {
-    "id": "soups",
-    "name": "Супы",
-    "order": 2
-  },
-  {
-    "id": "salads",
-    "name": "Салаты",
-    "order": 3
-  },
-  {
-    "id": "mains",
-    "name": "Горячие блюда",
-    "order": 4
-  },
-  {
-    "id": "pizza",
-    "name": "Пицца",
-    "order": 5
-  },
-  {
-    "id": "desserts",
-    "name": "Десерты",
-    "order": 6
-  },
-  {
-    "id": "drinks",
-    "name": "Напитки",
-    "order": 7
-  }
+  { "id": "breakfast", "name": "Завтраки", "name_kk": "Таңғы ас", "name_en": "Breakfast", "order": 1 },
+  { "id": "soups", "name": "Супы", "name_kk": "Сорпалар", "name_en": "Soups", "order": 2 },
+  { "id": "salads", "name": "Салаты", "name_kk": "Салаттар", "name_en": "Salads", "order": 3 },
+  { "id": "mains", "name": "Горячие блюда", "name_kk": "Ыстық тағамдар", "name_en": "Main Dishes", "order": 4 },
+  { "id": "pizza", "name": "Пицца", "name_kk": "Пицца", "name_en": "Pizza", "order": 5 },
+  { "id": "desserts", "name": "Десерты", "name_kk": "Десерттер", "name_en": "Desserts", "order": 6 },
+  { "id": "drinks", "name": "Напитки", "name_kk": "Сусындар", "name_en": "Drinks", "order": 7 }
 ]

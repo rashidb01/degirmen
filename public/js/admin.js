@@ -117,9 +117,14 @@
     await authFetch(`${API}/api/admin/categories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, order: categories.length + 1 }),
+      body: JSON.stringify({
+        name,
+        name_kk: document.getElementById('categoryNameKk').value.trim(),
+        name_en: document.getElementById('categoryNameEn').value.trim(),
+        order: categories.length + 1,
+      }),
     });
-    input.value = '';
+    document.getElementById('categoryForm').reset();
     await loadMenu();
     renderCategoryOptions();
     renderDishes();
@@ -165,6 +170,10 @@
     document.getElementById('dishPrice').value = d.price;
     document.getElementById('dishImage').value = d.image || '';
     document.getElementById('dishDescription').value = d.description || '';
+    document.getElementById('dishNameKk').value = d.name_kk || '';
+    document.getElementById('dishNameEn').value = d.name_en || '';
+    document.getElementById('dishDescriptionKk').value = d.description_kk || '';
+    document.getElementById('dishDescriptionEn').value = d.description_en || '';
     document.getElementById('dishAllergens').value = (d.allergens || []).join(', ');
     document.getElementById('dishTags').value = (d.tags || []).join(', ');
     document.getElementById('dishAvailable').checked = d.available !== false;
@@ -203,10 +212,14 @@
 
       const payload = {
         name: document.getElementById('dishName').value.trim(),
+        name_kk: document.getElementById('dishNameKk').value.trim(),
+        name_en: document.getElementById('dishNameEn').value.trim(),
         categoryId: document.getElementById('dishCategory').value,
         price: Number(document.getElementById('dishPrice').value),
         image: imageUrl,
         description: document.getElementById('dishDescription').value.trim(),
+        description_kk: document.getElementById('dishDescriptionKk').value.trim(),
+        description_en: document.getElementById('dishDescriptionEn').value.trim(),
         allergens: splitList(document.getElementById('dishAllergens').value),
         tags: splitList(document.getElementById('dishTags').value),
         available: document.getElementById('dishAvailable').checked,

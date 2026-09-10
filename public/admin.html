@@ -79,6 +79,27 @@
             <label>Описание</label>
             <textarea id="dishDescription"></textarea>
           </div>
+          <details class="translations-block">
+            <summary>Переводы на казахский / английский (необязательно)</summary>
+            <div class="form-grid">
+              <div class="field-group">
+                <label>Название (KK)</label>
+                <input type="text" id="dishNameKk" />
+              </div>
+              <div class="field-group">
+                <label>Название (EN)</label>
+                <input type="text" id="dishNameEn" />
+              </div>
+              <div class="field-group">
+                <label>Описание (KK)</label>
+                <textarea id="dishDescriptionKk"></textarea>
+              </div>
+              <div class="field-group">
+                <label>Описание (EN)</label>
+                <textarea id="dishDescriptionEn"></textarea>
+              </div>
+            </div>
+          </details>
           <div class="form-grid">
             <div class="field-group">
               <label>Аллергены (через запятую)</label>
@@ -103,9 +124,24 @@
 
       <section id="tab-categories" class="admin-panel hidden">
         <div class="panel-head"><h2>Категории</h2></div>
-        <form id="categoryForm" class="admin-form inline-form">
-          <input type="text" id="categoryName" placeholder="Название категории" required />
-          <button class="btn-primary" type="submit">Добавить</button>
+        <form id="categoryForm" class="admin-form">
+          <div class="form-grid">
+            <div class="field-group">
+              <label>Название</label>
+              <input type="text" id="categoryName" required />
+            </div>
+            <div class="field-group">
+              <label>Название (KK, необязательно)</label>
+              <input type="text" id="categoryNameKk" />
+            </div>
+            <div class="field-group">
+              <label>Название (EN, необязательно)</label>
+              <input type="text" id="categoryNameEn" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit">Добавить</button>
+          </div>
         </form>
         <div id="categoriesList" class="categories-admin-list"></div>
       </section>

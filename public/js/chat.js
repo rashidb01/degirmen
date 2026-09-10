@@ -9,13 +9,6 @@
   const input = document.getElementById('chatInput');
   const notice = document.getElementById('chatNotice');
 
-  const SUGGESTIONS = [
-    'Что вы посоветуете?',
-    'Есть блюда без глютена?',
-    'У меня аллергия на орехи',
-    'Предложите замену блюду',
-  ];
-
   let history = []; // { role: 'user' | 'assistant', content }
   let opened = false;
   let sending = false;
@@ -32,13 +25,20 @@
   closeBtn.addEventListener('click', close);
 
   function greet() {
-    addMessage('assistant', 'Привет! 👋 Я помощник Degirmen. Спросите про состав, аллергены или попросите что-то посоветовать — с удовольствием помогу выбрать блюдо.');
+    messagesEl.innerHTML = '';
+    addMessage('assistant', window.I18N.t('chatGreeting'));
     renderSuggestions();
   }
 
+  // If the guest switches language before typing anything, refresh the
+  // greeting + suggestion chips into the new language too.
+  window.addEventListener('degirmen:langchange', () => {
+    if (opened && history.length === 0) greet();
+  });
+
   function renderSuggestions() {
     suggestionsEl.innerHTML = '';
-    SUGGESTIONS.forEach((s) => {
+    window.I18N.chatSuggestions().forEach((s) => {
       const b = document.createElement('button');
       b.className = 'chip-btn';
       b.type = 'button';
@@ -80,15 +80,15 @@
       const res = await fetch(`${API}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, lang: window.I18N.getLang() }),
       });
       typingEl.remove();
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (res.status === 503) {
-          notice.textContent = 'AI-помощник временно недоступен (не настроен ключ).';
+          notice.textContent = window.I18N.t('chatUnavailable');
         } else {
-          addMessage('assistant', 'Извините, что-то пошло не так. Попробуйте ещё раз чуть позже.');
+          addMessage('assistant', window.I18N.t('chatError'));
         }
         console.error('chat error', data);
       } else {
@@ -98,7 +98,7 @@
       }
     } catch (e) {
       typingEl.remove();
-      addMessage('assistant', 'Не получилось связаться с сервером. Проверьте соединение и попробуйте снова.');
+      addMessage('assistant', window.I18N.t('chatNetError'));
       console.error(e);
     } finally {
       sending = false;
@@ -113,7 +113,13 @@
   // Called from app.js when the user taps "Спросить AI про это блюдо" on a dish.
   function askAbout(dish) {
     open();
-    sendMessage(`Расскажи подробнее про блюдо "${dish.name}": состав, аллергены, и если есть аллергия — что взять взамен из меню?`);
+    const name = window.I18N.trDishName(dish);
+    const prompts = {
+      ru: `Расскажи подробнее про блюдо "${name}": состав, аллергены, и если есть аллергия — что взять взамен из меню?`,
+      kk: `"${name}" тағамы туралы толығырақ айт: құрамы, аллергендер, және аллергия болса — мәзірден не алуға болады?`,
+      en: `Tell me more about "${name}": ingredients, allergens, and if there's an allergy — what to get instead from the menu?`,
+    };
+    sendMessage(prompts[window.I18N.getLang()] || prompts.ru);
   }
 
   window.DegirmenChat = { open, close, askAbout };

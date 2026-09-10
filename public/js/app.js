@@ -42,7 +42,7 @@
       const btn = document.createElement('button');
       btn.className = 'category-chip' + (cat.id === state.activeCategory ? ' active' : '');
       btn.type = 'button';
-      btn.textContent = cat.name;
+      btn.textContent = window.I18N.trCategoryName(cat);
       btn.addEventListener('click', () => {
         document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
@@ -52,29 +52,30 @@
 
   // ── menu render ───────────────────────────────────────────────────────
   function dishAllergenLine(dish) {
-    if (!dish.allergens || dish.allergens.length === 0) return 'Аллергены не заявлены';
-    return `<b>Аллергены:</b> ${dish.allergens.join(', ')}`;
+    if (!dish.allergens || dish.allergens.length === 0) return window.I18N.t('allergensNone');
+    return `<b>${window.I18N.t('allergensLabel')}</b> ${dish.allergens.map(window.I18N.trAllergen).join(', ')}`;
   }
 
   function dishCard(dish) {
     const unavailable = dish.available === false;
+    const name = window.I18N.trDishName(dish);
     const card = document.createElement('div');
     card.className = 'dish-card' + (unavailable ? ' dish-unavailable' : '');
     card.innerHTML = `
       <div class="dish-img-wrap">
-        <img src="${dish.image || placeholderImg()}" alt="${escapeHtml(dish.name)}" loading="lazy" />
+        <img src="${dish.image || placeholderImg()}" alt="${escapeHtml(name)}" loading="lazy" />
         <div class="dish-badges">
-          ${(dish.tags || []).slice(0, 2).map((t) => `<span class="badge">${escapeHtml(t)}</span>`).join('')}
-          ${unavailable ? '<span class="badge">нет в наличии</span>' : ''}
+          ${(dish.tags || []).slice(0, 2).map((t) => `<span class="badge">${escapeHtml(window.I18N.trTag(t))}</span>`).join('')}
+          ${unavailable ? `<span class="badge">${escapeHtml(window.I18N.t('unavailableBadge'))}</span>` : ''}
         </div>
       </div>
       <div class="dish-body">
-        <div class="dish-name">${escapeHtml(dish.name)}</div>
-        <div class="dish-desc">${escapeHtml(dish.description || '')}</div>
+        <div class="dish-name">${escapeHtml(name)}</div>
+        <div class="dish-desc">${escapeHtml(window.I18N.trDishDescription(dish))}</div>
         <div class="dish-allergens">${dishAllergenLine(dish)}</div>
         <div class="dish-footer">
           <div class="dish-price">${money(dish.price)}</div>
-          <button class="add-btn" type="button" aria-label="Добавить в корзину">+</button>
+          <button class="add-btn" type="button" aria-label="${escapeHtml(window.I18N.t('addToCartAriaLabel'))}">+</button>
         </div>
       </div>
     `;
@@ -112,14 +113,20 @@
     let anyResults = false;
     state.categories.forEach((cat) => {
       let dishes = state.dishes.filter((d) => d.categoryId === cat.id);
-      if (q) dishes = dishes.filter((d) => d.name.toLowerCase().includes(q) || (d.description || '').toLowerCase().includes(q));
+      if (q) {
+        dishes = dishes.filter((d) => {
+          const name = window.I18N.trDishName(d).toLowerCase();
+          const desc = window.I18N.trDishDescription(d).toLowerCase();
+          return name.includes(q) || desc.includes(q);
+        });
+      }
       if (dishes.length === 0) return;
       anyResults = true;
 
       const section = document.createElement('section');
       section.className = 'category-section';
       section.id = `cat-${cat.id}`;
-      section.innerHTML = `<h2>${escapeHtml(cat.name)} <span class="cat-count">${dishes.length}</span></h2>`;
+      section.innerHTML = `<h2>${escapeHtml(window.I18N.trCategoryName(cat))} <span class="cat-count">${dishes.length}</span></h2>`;
       const grid = document.createElement('div');
       grid.className = 'dish-grid';
       dishes.forEach((d) => grid.appendChild(dishCard(d)));
@@ -128,7 +135,7 @@
     });
 
     if (!anyResults) {
-      wrap.innerHTML = `<div class="empty-state">Ничего не найдено${q ? ` по запросу «${escapeHtml(q)}»` : ''}.</div>`;
+      wrap.innerHTML = `<div class="empty-state">${escapeHtml(window.I18N.t('noResultsLabel'))}${q ? `: "${escapeHtml(q)}"` : '.'}</div>`;
     }
   }
 
@@ -154,23 +161,24 @@
 
   function renderDishModal() {
     const dish = modalDish;
+    const name = window.I18N.trDishName(dish);
     dishModal.innerHTML = `
       <div class="modal-header">
-        <img class="modal-img" src="${dish.image || placeholderImg()}" alt="${escapeHtml(dish.name)}" />
+        <img class="modal-img" src="${dish.image || placeholderImg()}" alt="${escapeHtml(name)}" />
         <button class="modal-close" id="modalCloseBtn" type="button">✕</button>
       </div>
       <div class="modal-body">
-        <h3>${escapeHtml(dish.name)}</h3>
+        <h3>${escapeHtml(name)}</h3>
         <div class="modal-price">${money(dish.price)}</div>
-        <div class="modal-desc">${escapeHtml(dish.description || '')}</div>
-        ${(dish.tags || []).length ? `<div class="tag-row">${dish.tags.map((t) => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+        <div class="modal-desc">${escapeHtml(window.I18N.trDishDescription(dish))}</div>
+        ${(dish.tags || []).length ? `<div class="tag-row">${dish.tags.map((t) => `<span class="tag-pill">${escapeHtml(window.I18N.trTag(t))}</span>`).join('')}</div>` : ''}
         <div class="allergen-block">
           <div class="allergen-icon">⚠️</div>
           <div>
-            <strong>Аллергены</strong>
+            <strong>${escapeHtml(window.I18N.t('allergensHeading'))}</strong>
             ${dish.allergens && dish.allergens.length
-              ? `<div class="allergen-chip-row">${dish.allergens.map((a) => `<span class="allergen-chip">${escapeHtml(a)}</span>`).join('')}</div>`
-              : `<div class="allergen-note">Не заявлены. Если сомневаетесь — спросите у AI-помощника.</div>`}
+              ? `<div class="allergen-chip-row">${dish.allergens.map((a) => `<span class="allergen-chip">${escapeHtml(window.I18N.trAllergen(a))}</span>`).join('')}</div>`
+              : `<div class="allergen-note">${escapeHtml(window.I18N.t('allergensNoneModal'))}</div>`}
           </div>
         </div>
         <div class="qty-add-row">
@@ -179,10 +187,10 @@
             <span id="qtyVal">${modalQty}</span>
             <button type="button" id="qtyPlus">+</button>
           </div>
-          <button class="btn-primary" id="addToCartBtn" type="button">Добавить · ${money(dish.price * modalQty)}</button>
+          <button class="btn-primary" id="addToCartBtn" type="button">${escapeHtml(window.I18N.t('addToCartLabel'))} · ${money(dish.price * modalQty)}</button>
         </div>
         <div class="modal-actions">
-          <button class="btn-ghost" id="askAiBtn" type="button">🤖 Спросить AI про это блюдо</button>
+          <button class="btn-ghost" id="askAiBtn" type="button">${escapeHtml(window.I18N.t('askAi'))}</button>
         </div>
       </div>
     `;
@@ -200,7 +208,7 @@
   }
   function refreshQty() {
     dishModal.querySelector('#qtyVal').textContent = modalQty;
-    dishModal.querySelector('#addToCartBtn').textContent = `Добавить · ${money(modalDish.price * modalQty)}`;
+    dishModal.querySelector('#addToCartBtn').textContent = `${window.I18N.t('addToCartLabel')} · ${money(modalDish.price * modalQty)}`;
   }
   dishOverlay.addEventListener('click', (e) => { if (e.target === dishOverlay) closeDishModal(); });
 
@@ -209,41 +217,44 @@
   const quizModal = document.getElementById('quizModal');
   let quizAnswers = {};
 
-  const QUIZ_CATEGORY_STEP = {
-    key: 'category',
-    question: 'Что хотите заказать?',
-    options: [
-      { label: '🍲 Первое', value: 'soups' },
-      { label: '🍽️ Основное', value: 'mains' },
-      { label: '🍕 Пиццу', value: 'pizza' },
-      { label: '🍰 Сладкое', value: 'desserts' },
-      { label: '🥤 Просто попить', value: 'drinks' },
-      { label: '🤷 Удивите меня', value: null },
-    ],
-  };
-  const QUIZ_MEAT_STEP = {
-    key: 'meat',
-    question: 'С мясом или рыбой, или без?',
-    options: [
-      { label: '🥩 С мясом или рыбой', value: 'meat' },
-      { label: '🥦 Без мяса', value: 'veg' },
-      { label: '🤷 Не важно', value: null },
-    ],
-  };
-  const QUIZ_SPICE_STEP = {
-    key: 'spice',
-    question: 'Любите поострее?',
-    options: [
-      { label: '🌶️ Да, поострее', value: 'spicy' },
-      { label: '😌 Нет, помягче', value: 'mild' },
-      { label: '🤷 Не важно', value: null },
-    ],
-  };
-
+  // Built fresh from I18N on every call so the quiz always reflects the
+  // currently selected language, even mid-flow.
   function quizCategoryStep() {
+    const t = window.I18N.t;
     const have = new Set(state.dishes.filter((d) => d.available !== false).map((d) => d.categoryId));
-    const options = QUIZ_CATEGORY_STEP.options.filter((o) => o.value === null || have.has(o.value));
-    return { ...QUIZ_CATEGORY_STEP, options };
+    const allOptions = [
+      { label: t('quizOptSoup'), value: 'soups' },
+      { label: t('quizOptMains'), value: 'mains' },
+      { label: t('quizOptPizza'), value: 'pizza' },
+      { label: t('quizOptDesserts'), value: 'desserts' },
+      { label: t('quizOptDrinks'), value: 'drinks' },
+      { label: t('quizOptSurprise'), value: null },
+    ];
+    return { key: 'category', question: t('quizQ1'), options: allOptions.filter((o) => o.value === null || have.has(o.value)) };
+  }
+  function quizMeatStep() {
+    const t = window.I18N.t;
+    return {
+      key: 'meat',
+      question: t('quizQ2'),
+      options: [
+        { label: t('quizOptMeat'), value: 'meat' },
+        { label: t('quizOptVeg'), value: 'veg' },
+        { label: t('quizOptAny'), value: null },
+      ],
+    };
+  }
+  function quizSpiceStep() {
+    const t = window.I18N.t;
+    return {
+      key: 'spice',
+      question: t('quizQ3'),
+      options: [
+        { label: t('quizOptSpicy'), value: 'spicy' },
+        { label: t('quizOptMild'), value: 'mild' },
+        { label: t('quizOptAny'), value: null },
+      ],
+    };
   }
 
   function nextQuizStep() {
@@ -251,8 +262,8 @@
     const cat = quizAnswers.category;
     const needsMeat = cat === null || ['mains', 'soups', 'pizza'].includes(cat);
     const needsSpice = cat !== 'drinks';
-    if (needsMeat && !('meat' in quizAnswers)) return QUIZ_MEAT_STEP;
-    if (needsSpice && !('spice' in quizAnswers)) return QUIZ_SPICE_STEP;
+    if (needsMeat && !('meat' in quizAnswers)) return quizMeatStep();
+    if (needsSpice && !('spice' in quizAnswers)) return quizSpiceStep();
     return null; // done — show results
   }
 
@@ -317,28 +328,29 @@
 
   function renderQuizResults() {
     const results = matchQuizDishes();
+    const t = window.I18N.t;
     quizModal.innerHTML = `
       <button class="modal-close" id="quizCloseBtn" type="button">✕</button>
       <div class="quiz-body">
-        <div class="quiz-question">Вот что подойдёт 👇</div>
+        <div class="quiz-question">${escapeHtml(t('quizResultTitle'))}</div>
         ${results.length === 0
-          ? `<div class="empty-state">Ничего не нашлось под эти пожелания — загляните в меню целиком 🙂</div>`
+          ? `<div class="empty-state">${escapeHtml(t('quizNoResults'))}</div>`
           : `<div class="quiz-result-grid">
               ${results.map((d) => `
                 <div class="quiz-result-card" data-id="${d.id}">
                   <img src="${d.image || placeholderImg()}" alt="" />
                   <div class="info">
-                    <div class="name">${escapeHtml(d.name)}</div>
+                    <div class="name">${escapeHtml(window.I18N.trDishName(d))}</div>
                     <div class="row">
                       <span class="price">${money(d.price)}</span>
-                      <button type="button" class="add" aria-label="Добавить">+</button>
+                      <button type="button" class="add" aria-label="${escapeHtml(t('addToCartAriaLabel'))}">+</button>
                     </div>
                   </div>
                 </div>
               `).join('')}
             </div>`}
         <div class="quiz-actions">
-          <button class="btn-ghost" id="quizRestartBtn" type="button">↻ Спросить заново</button>
+          <button class="btn-ghost" id="quizRestartBtn" type="button">${escapeHtml(t('quizRestart'))}</button>
         </div>
       </div>
     `;
@@ -408,9 +420,10 @@
   cartOverlay.addEventListener('click', (e) => { if (e.target === cartOverlay) closeCart(); });
 
   function renderCart() {
+    const t = window.I18N.t;
     const entries = Object.entries(state.cart).filter(([id]) => state.dishes.some((d) => d.id === id));
     if (entries.length === 0) {
-      cartBody.innerHTML = `<div class="cart-empty">Корзина пуста.<br>Добавьте блюда из меню 🍽️</div>`;
+      cartBody.innerHTML = `<div class="cart-empty">${t('cartEmpty')}</div>`;
       cartFooter.classList.add('hidden');
       return;
     }
@@ -422,13 +435,13 @@
       row.innerHTML = `
         <img src="${dish.image || placeholderImg()}" alt="" />
         <div class="cart-item-info">
-          <div class="cart-item-name">${escapeHtml(dish.name)}</div>
+          <div class="cart-item-name">${escapeHtml(window.I18N.trDishName(dish))}</div>
           <div class="cart-item-price">${money(dish.price)} × ${qty}</div>
           <div class="cart-item-controls">
             <button type="button" data-act="minus">−</button>
             <span>${qty}</span>
             <button type="button" data-act="plus">+</button>
-            <button class="cart-item-remove" type="button" data-act="remove">Удалить</button>
+            <button class="cart-item-remove" type="button" data-act="remove">${escapeHtml(t('removeItem'))}</button>
           </div>
         </div>
       `;
@@ -443,12 +456,12 @@
     const formHtml = document.createElement('div');
     formHtml.innerHTML = `
       <div class="field-group">
-        <label>Номер стола</label>
-        <input type="text" id="tableNumberInput" placeholder="напр. 5" value="${sessionStorage.getItem('degirmen_table') || ''}" />
+        <label>${escapeHtml(t('tableNumberLabel'))}</label>
+        <input type="text" id="tableNumberInput" placeholder="${escapeHtml(t('tableNumberPlaceholder'))}" value="${sessionStorage.getItem('degirmen_table') || ''}" />
       </div>
       <div class="field-group">
-        <label>Комментарий / аллергии</label>
-        <textarea id="orderCommentInput" placeholder="Например: без орехов, острое"></textarea>
+        <label>${escapeHtml(t('commentLabel'))}</label>
+        <textarea id="orderCommentInput" placeholder="${escapeHtml(t('commentPlaceholder'))}"></textarea>
       </div>
     `;
     cartBody.appendChild(formHtml);
@@ -459,13 +472,15 @@
 
   // Nudge to complete the order: if there's nothing from a "core" category yet
   // (drink, first course…), show a few pickable cards for it right in the cart.
-  const SUGGEST_RULES = [
-    { categoryId: 'soups', title: 'Не хотите первое?' },
-    { categoryId: 'drinks', title: 'Не забудьте про напиток' },
-  ];
+  function suggestRules() {
+    return [
+      { categoryId: 'soups', title: window.I18N.t('suggestSoup') },
+      { categoryId: 'drinks', title: window.I18N.t('suggestDrink') },
+    ];
+  }
   function renderCartSuggestions(cartDishIds) {
     const cartCategoryIds = new Set(cartDishIds.map((id) => state.dishes.find((d) => d.id === id)?.categoryId));
-    SUGGEST_RULES.forEach((rule) => {
+    suggestRules().forEach((rule) => {
       if (cartCategoryIds.has(rule.categoryId)) return;
       const category = state.categories.find((c) => c.id === rule.categoryId);
       if (!category) return;
@@ -483,10 +498,10 @@
         card.innerHTML = `
           <img src="${dish.image || placeholderImg()}" alt="" />
           <div class="info">
-            <div class="name">${escapeHtml(dish.name)}</div>
+            <div class="name">${escapeHtml(window.I18N.trDishName(dish))}</div>
             <div class="row">
               <span class="price">${money(dish.price)}</span>
-              <button type="button" class="add" aria-label="Добавить">+</button>
+              <button type="button" class="add" aria-label="${escapeHtml(window.I18N.t('addToCartAriaLabel'))}">+</button>
             </div>
           </div>
         `;
@@ -515,7 +530,7 @@
     if (items.length === 0) return;
 
     btn.disabled = true;
-    btn.textContent = 'Отправляем…';
+    btn.textContent = window.I18N.t('sending');
     try {
       const res = await fetch(`${API}/api/orders`, {
         method: 'POST',
@@ -532,21 +547,22 @@
       // with the next round if the guest goes quiet again.
       scheduleIdleNudge();
     } catch (e) {
-      alert('Не удалось отправить заказ. Попробуйте ещё раз.');
+      alert(window.I18N.t('orderFailed'));
       btn.disabled = false;
-      btn.textContent = 'Оформить заказ';
+      btn.textContent = window.I18N.t('checkout');
     }
   });
 
   function showOrderSuccess(order) {
+    const t = window.I18N.t;
     cartBody.innerHTML = `
       <div class="order-success">
         <div class="big-check">✅</div>
-        <h3>Заказ принят!</h3>
-        <div class="order-id">№ ${order.id}</div>
-        <p style="color:var(--ink-soft)">Стол ${order.tableNumber || '—'} · Итого ${money(order.total)}</p>
-        <p style="color:var(--ink-soft); font-size:0.85rem">Оплата на кассе. Онлайн-оплата через Kaspi скоро появится.</p>
-        <button class="btn-primary" id="newOrderBtn" type="button" style="margin-top:10px">Заказать ещё</button>
+        <h3>${escapeHtml(t('orderSuccessTitle'))}</h3>
+        <div class="order-id">${escapeHtml(t('orderNumberWord'))} ${order.id}</div>
+        <p style="color:var(--ink-soft)">${escapeHtml(t('tableWord'))} ${order.tableNumber || '—'} · ${escapeHtml(t('total'))} ${money(order.total)}</p>
+        <p style="color:var(--ink-soft); font-size:0.85rem">${escapeHtml(t('orderSuccessNote'))}</p>
+        <button class="btn-primary" id="newOrderBtn" type="button" style="margin-top:10px">${escapeHtml(t('orderMore'))}</button>
       </div>
     `;
     cartFooter.classList.add('hidden');
@@ -598,7 +614,16 @@
   scheduleIdleNudge();
 
   loadMenu().catch((e) => {
-    document.getElementById('menuWrap').innerHTML = `<div class="empty-state">Не удалось загрузить меню. Обновите страницу.</div>`;
+    document.getElementById('menuWrap').innerHTML = `<div class="empty-state">${escapeHtml(window.I18N.t('loadMenuError'))}</div>`;
     console.error(e);
+  });
+
+  // Language switched — re-render everything that has translated content
+  // baked into its HTML (dish names/descriptions, categories, cart, quiz).
+  window.addEventListener('degirmen:langchange', () => {
+    renderCategoryNav();
+    renderMenu();
+    if (cartOverlay.classList.contains('open')) renderCart();
+    if (quizOverlay.classList.contains('open')) renderQuizStep();
   });
 })();

@@ -57,6 +57,27 @@ a { color: inherit; }
 
 .header-spacer { flex: 1; }
 
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  flex: none;
+}
+.lang-switch button {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+.lang-switch button.active { background: var(--ink); color: #fff; }
+
 .cart-count {
   background: var(--accent);
   color: #fff;
