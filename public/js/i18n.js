@@ -62,6 +62,7 @@
     chatTitle: { ru: 'Помощник Degirmen', kk: 'Degirmen көмекшісі', en: 'Degirmen Assistant' },
     chatSubtitle: { ru: 'Спросите про блюда, аллергены, замену', kk: 'Тағамдар, аллергендер, алмастыру туралы сұраңыз', en: 'Ask about dishes, allergens, substitutes' },
     chatPlaceholder: { ru: 'Напишите сообщение…', kk: 'Хабарлама жазыңыз…', en: 'Type a message…' },
+    chatQuizBtn: { ru: 'Подобрать блюдо', kk: 'Тағам таңдау', en: 'Recommend a dish' },
     chatGreeting: {
       ru: 'Привет! 👋 Я помощник Degirmen. Спросите про состав, аллергены или попросите что-то посоветовать — с удовольствием помогу выбрать блюдо.',
       kk: 'Сәлем! 👋 Мен Degirmen көмекшісімін. Құрамы, аллергендер туралы сұраңыз немесе кеңес сұраңыз — тағам таңдауға көмектесемін.',

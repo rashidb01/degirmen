@@ -577,12 +577,20 @@
     openQuiz();
   });
 
+  // "Подобрать блюдо" button inside the chat panel — same quiz, just
+  // reachable on demand instead of only via the idle nudge.
+  document.getElementById('chatQuizBtn').addEventListener('click', () => {
+    window.DegirmenChat?.close();
+    openQuiz();
+  });
+
   // expose minimal API for chat.js
   window.Degirmen = {
     getMenuContext: () => ({ categories: state.categories, dishes: state.dishes }),
     addToCart,
     money,
     cancelIdleNudge: () => {}, // nudge is unconditional now — chat opening no longer cancels it
+    openQuiz,
   };
 
   setTimeout(showIdleNudge, NUDGE_DELAY_MS);
