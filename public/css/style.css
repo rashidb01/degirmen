@@ -377,9 +377,8 @@ a { color: inherit; }
 /* ── Cart drawer ────────────────────────────────────────────────────── */
 .drawer {
   position: fixed;
-  top: 0; right: 0; bottom: 0;
+  inset: 0;
   width: 100%;
-  max-width: 420px;
   background: var(--surface);
   box-shadow: -12px 0 40px rgba(0,0,0,0.18);
   z-index: 110;
