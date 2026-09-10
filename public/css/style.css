@@ -131,6 +131,7 @@ a { color: inherit; }
 /* ── Menu ───────────────────────────────────────────────────────────── */
 .menu-wrap { max-width: 1120px; margin: 0 auto; padding: 12px 20px 100px; }
 .category-section { margin-top: 36px; scroll-margin-top: 140px; }
+.category-section:first-child { margin-top: 12px; }
 .category-section h2 {
   font-size: 1.35rem;
   margin: 0 0 4px;
