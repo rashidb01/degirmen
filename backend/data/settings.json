@@ -51,7 +51,13 @@
   },
   "customization": {
     "enabled": true,
-    "quickOptions": ["без лука", "без соуса", "поострее", "без сыра", "без зелени"]
+    "quickOptions": [
+      "без лука",
+      "без соуса",
+      "поострее",
+      "без сыра",
+      "без зелени"
+    ]
   },
   "loyalty": {
     "enabled": true,
@@ -64,7 +70,7 @@
     "enabled": true
   },
   "venueInfo": {
-    "workingHours": "Ежедневно 10:00 — 23:00",
+    "workingHours": "",
     "address": "",
     "phone": "",
     "wifi": "",

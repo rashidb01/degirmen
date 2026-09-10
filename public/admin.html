@@ -36,6 +36,11 @@
       <button class="admin-tab active" data-tab="orders">Заказы</button>
       <button class="admin-tab" data-tab="dishes">Блюда</button>
       <button class="admin-tab" data-tab="categories">Категории</button>
+      <button class="admin-tab" data-tab="settings">Бот и фичи</button>
+      <button class="admin-tab" data-tab="branches">Точки и столы</button>
+      <button class="admin-tab" data-tab="promocodes">Промокоды</button>
+      <button class="admin-tab" data-tab="guests">Гости</button>
+      <button class="admin-tab" data-tab="feedback">Отзывы <span class="tab-badge hidden" id="feedbackBadge">0</span></button>
     </nav>
 
     <main class="admin-main">
@@ -151,6 +156,160 @@
           </div>
         </form>
         <div id="categoriesList" class="categories-admin-list"></div>
+      </section>
+
+      <!-- ─── Settings: everything the bot does, toggled + configured here ─── -->
+      <section id="tab-settings" class="admin-panel hidden">
+        <div class="panel-head"><h2>Бот и фичи</h2></div>
+        <form id="settingsForm">
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-negativeFeedback-enabled" /> <strong>Перехват негатива</strong></label>
+            <p class="settings-hint">Бот ловит жалобы гостя по ключевым словам и складывает во вкладку «Отзывы» — ниже подсказка, как ему реагировать в чате.</p>
+            <div class="field-group">
+              <label>Что отвечать гостю при жалобе</label>
+              <textarea id="s-negativeFeedback-replyHint"></textarea>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-orderHistory-enabled" /> <strong>Анализ прошлых заказов</strong></label>
+            <p class="settings-hint">Бот видит последние заказы гостя (по этому браузеру) и может ссылаться на них / предлагать повторить.</p>
+            <div class="field-group">
+              <label>Сколько последних заказов учитывать</label>
+              <input type="number" id="s-orderHistory-maxOrders" min="1" max="20" />
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-abandonedCart-enabled" /> <strong>Брошенные корзины</strong></label>
+            <p class="settings-hint">Если гость добавил блюда и ничего не оформляет — через N минут всплывает мягкое напоминание.</p>
+            <div class="field-group">
+              <label>Через сколько минут напомнить</label>
+              <input type="number" id="s-abandonedCart-delayMinutes" min="1" max="60" />
+            </div>
+            <div class="form-grid">
+              <div class="field-group"><label>Текст (RU)</label><input type="text" id="s-abandonedCart-text" /></div>
+              <div class="field-group"><label>Текст (KK)</label><input type="text" id="s-abandonedCart-text_kk" /></div>
+              <div class="field-group"><label>Текст (EN)</label><input type="text" id="s-abandonedCart-text_en" /></div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-upsell-enabled" /> <strong>Умный апселл</strong></label>
+            <p class="settings-hint">Правила «если в заказе нет/есть категория X — предложи категорию Y» — показываются карточками в корзине и учитываются ботом в чате.</p>
+            <div id="upsellRulesList"></div>
+            <button type="button" class="btn-ghost" id="addUpsellRuleBtn">+ Добавить правило</button>
+          </div>
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-customization-enabled" /> <strong>Кастомизация блюд</strong></label>
+            <p class="settings-hint">Поле «Пожелания к блюду» свободным текстом (без лука, двойной сыр…) у каждого блюда и в корзине.</p>
+            <div class="field-group">
+              <label>Быстрые варианты (через запятую)</label>
+              <input type="text" id="s-customization-quickOptions" placeholder="без лука, без соуса, поострее" />
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-loyalty-enabled" /> <strong>Бонусный кошелёк</strong></label>
+            <p class="settings-hint">У каждого гостя (по браузеру) копится кэшбэк баллами, который можно списать при следующем заказе.</p>
+            <div class="form-grid">
+              <div class="field-group"><label>Кэшбэк, % от заказа</label><input type="number" id="s-loyalty-earnPercent" min="0" max="100" /></div>
+              <div class="field-group"><label>Макс. % заказа баллами</label><input type="number" id="s-loyalty-redeemMaxPercent" min="0" max="100" /></div>
+              <div class="field-group"><label>Мин. баллов для списания</label><input type="number" id="s-loyalty-minRedeem" min="0" /></div>
+              <div class="field-group"><label>Приветственный бонус</label><input type="number" id="s-loyalty-welcomeBonus" min="0" /></div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-promo-enabled" /> <strong>Промокоды</strong></label>
+            <p class="settings-hint">Сами коды создаются во вкладке «Промокоды» — здесь просто включение/выключение фичи целиком.</p>
+          </div>
+
+          <div class="settings-card">
+            <h3 style="margin:0 0 4px">Информация о заведении</h3>
+            <p class="settings-hint">Бот отвечает по этим фактам мгновенно, без выдумок — график работы, адрес и т.д.</p>
+            <div class="form-grid">
+              <div class="field-group"><label>График работы</label><input type="text" id="s-venueInfo-workingHours" placeholder="Ежедневно 10:00–23:00" /></div>
+              <div class="field-group"><label>Адрес</label><input type="text" id="s-venueInfo-address" /></div>
+              <div class="field-group"><label>Телефон</label><input type="text" id="s-venueInfo-phone" /></div>
+              <div class="field-group"><label>Wi-Fi</label><input type="text" id="s-venueInfo-wifi" /></div>
+            </div>
+            <div class="field-group"><label>Ещё что-то важное</label><textarea id="s-venueInfo-extra"></textarea></div>
+          </div>
+
+          <div class="settings-card">
+            <label class="checkbox-row"><input type="checkbox" id="s-faq-enabled" /> <strong>FAQ</strong></label>
+            <p class="settings-hint">Готовые пары «вопрос → ответ» для мгновенных ответов бота.</p>
+            <div id="faqList"></div>
+            <button type="button" class="btn-ghost" id="addFaqBtn">+ Добавить вопрос</button>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-primary" type="submit" id="settingsSubmitBtn">Сохранить настройки</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ─── Branches (network points + tables) ─── -->
+      <section id="tab-branches" class="admin-panel hidden">
+        <div class="panel-head"><h2>Точки и столы</h2></div>
+        <p class="settings-hint">Ссылка на конкретный стол: <code>ваш-сайт/?table=5&branch=ID_точки</code> — стол и точка определятся сами, гостю ничего вводить не надо.</p>
+        <form id="branchForm" class="admin-form">
+          <div class="form-grid">
+            <div class="field-group"><label>Название</label><input type="text" id="branchName" required /></div>
+            <div class="field-group"><label>Адрес</label><input type="text" id="branchAddress" /></div>
+            <div class="field-group"><label>Число столов</label><input type="number" id="branchTables" min="0" /></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit">Добавить точку</button>
+          </div>
+        </form>
+        <div id="branchesList" class="dishes-admin-list"></div>
+      </section>
+
+      <!-- ─── Promo codes ─── -->
+      <section id="tab-promocodes" class="admin-panel hidden">
+        <div class="panel-head"><h2>Промокоды</h2></div>
+        <form id="promoForm" class="admin-form">
+          <div class="form-grid">
+            <div class="field-group"><label>Код</label><input type="text" id="promoCode" placeholder="DEGIRMEN10" required /></div>
+            <div class="field-group">
+              <label>Тип</label>
+              <select id="promoType">
+                <option value="percent">% от заказа</option>
+                <option value="fixed">фикс. сумма (₸)</option>
+              </select>
+            </div>
+            <div class="field-group"><label>Значение</label><input type="number" id="promoValue" min="0" required /></div>
+            <div class="field-group"><label>Мин. сумма заказа (₸)</label><input type="number" id="promoMinOrder" min="0" /></div>
+            <div class="field-group"><label>Лимит использований (0 = без лимита)</label><input type="number" id="promoUsageLimit" min="0" /></div>
+            <div class="field-group"><label>Истекает (необязательно)</label><input type="date" id="promoExpiresAt" /></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit">Создать промокод</button>
+          </div>
+        </form>
+        <div id="promocodesList" class="dishes-admin-list"></div>
+      </section>
+
+      <!-- ─── Guests (loyalty wallets) ─── -->
+      <section id="tab-guests" class="admin-panel hidden">
+        <div class="panel-head">
+          <h2>Гости</h2>
+          <button class="btn-ghost" id="refreshGuestsBtn" type="button">↻ Обновить</button>
+        </div>
+        <div id="guestsList" class="dishes-admin-list"></div>
+      </section>
+
+      <!-- ─── Intercepted negative feedback ─── -->
+      <section id="tab-feedback" class="admin-panel hidden">
+        <div class="panel-head">
+          <h2>Отзывы</h2>
+          <button class="btn-ghost" id="refreshFeedbackBtn" type="button">↻ Обновить</button>
+        </div>
+        <div id="feedbackList" class="orders-list"></div>
       </section>
 
     </main>

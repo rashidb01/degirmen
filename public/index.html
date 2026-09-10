@@ -15,7 +15,11 @@
       <div class="brand">
         <img class="brand-logo" src="/assets/logo-full.png" alt="Degirmen" />
       </div>
+      <span class="table-badge hidden" id="tableBadge"></span>
       <div class="header-spacer"></div>
+      <button class="wallet-btn hidden" id="walletBtn" type="button">
+        <span>★</span><span id="walletBtnPoints">0</span>
+      </button>
       <div class="lang-switch" role="group" aria-label="Язык / Тіл / Language">
         <button type="button" data-lang="ru">RU</button>
         <button type="button" data-lang="kk">ҚАЗ</button>
@@ -69,9 +73,21 @@
     <button class="idle-nudge-btn" id="idleNudgeBtn" type="button" data-i18n="nudgeBtn">Да, помогите</button>
   </div>
 
+  <!-- Abandoned-cart nudge: items sitting in the cart with no checkout -->
+  <div class="idle-nudge hidden" id="cartNudge">
+    <button class="idle-nudge-close" id="cartNudgeClose" type="button" aria-label="Закрыть">✕</button>
+    <div class="idle-nudge-text" id="cartNudgeText"></div>
+    <button class="idle-nudge-btn" id="cartNudgeBtn" type="button" data-i18n="checkout">Оформить заказ</button>
+  </div>
+
   <!-- Guided picker: separate quiz window (question-by-question, then result cards) -->
   <div class="overlay" id="quizOverlay">
     <div class="modal-card quiz-card" id="quizModal"></div>
+  </div>
+
+  <!-- Loyalty wallet -->
+  <div class="overlay" id="walletOverlay">
+    <div class="modal-card" id="walletModal"></div>
   </div>
 
   <!-- Floating action buttons -->

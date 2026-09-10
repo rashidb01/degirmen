@@ -51,7 +51,10 @@
   padding: 12px 20px 0;
   max-width: 960px;
   margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.admin-tabs::-webkit-scrollbar { display: none; }
 .admin-tab {
   border: none;
   background: transparent;
@@ -59,8 +62,56 @@
   font-weight: 600;
   color: var(--ink-soft);
   border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .admin-tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+.tab-badge {
+  background: var(--danger);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* ── Settings panel ─────────────────────────────────────────────────── */
+.settings-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; background: var(--surface); }
+.settings-hint { font-size: 0.8rem; color: var(--ink-soft); margin: 6px 0 14px; }
+.rule-row, .faq-row {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  background: var(--surface-soft);
+  position: relative;
+}
+.rule-row .rule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rule-row select, .rule-row input, .faq-row input, .faq-row textarea {
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 0.85rem; font-family: inherit; background: var(--surface);
+}
+.row-remove-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: none; border: none; color: var(--danger); font-size: 0.78rem; font-weight: 700; padding: 2px 6px;
+}
+
+/* ── Guests / feedback lists ───────────────────────────────────────── */
+.guest-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--surface); }
+.guest-row .gid { font-family: monospace; font-size: 0.78rem; color: var(--ink-soft); }
+.guest-row .gmeta { font-size: 0.8rem; color: var(--ink-soft); margin-top: 2px; }
+.guest-row .gpoints { font-weight: 800; font-size: 1.05rem; white-space: nowrap; }
+
+.feedback-item { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; background: var(--surface); }
+.feedback-item.status-new { border-color: var(--danger); background: #fdf2f1; }
+.feedback-item .ftext { font-size: 0.92rem; margin-bottom: 8px; }
+.feedback-item .fmeta { font-size: 0.76rem; color: var(--ink-soft); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 
 .admin-main { max-width: 960px; margin: 0 auto; padding: 20px; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }

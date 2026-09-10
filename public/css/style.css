@@ -48,8 +48,9 @@ a { color: inherit; }
   margin: 0 auto;
   padding: 14px 20px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 14px;
+  gap: 10px 14px;
 }
 .brand { display: flex; flex-direction: column; gap: 2px; }
 .brand-logo { height: 40px; width: auto; display: block; }
@@ -77,6 +78,34 @@ a { color: inherit; }
   border-radius: 999px;
 }
 .lang-switch button.active { background: var(--ink); color: #fff; }
+
+.table-badge {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  flex: none;
+  white-space: nowrap;
+}
+
+.wallet-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  flex: none;
+  margin-right: 8px;
+}
+.wallet-btn span:first-child { color: var(--accent); }
 
 .cart-count {
   background: var(--accent);
@@ -374,6 +403,26 @@ a { color: inherit; }
 }
 .quiz-actions { display: flex; justify-content: center; }
 
+/* ── Loyalty wallet ─────────────────────────────────────────────────── */
+.wallet-body { padding: 44px 20px 24px; position: relative; }
+.wallet-card {
+  background: linear-gradient(135deg, var(--ink) 0%, #40332c 100%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.wallet-card .label { font-size: 0.74rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+.wallet-card .points { font-size: 2rem; font-weight: 800; display: flex; align-items: baseline; gap: 8px; }
+.wallet-card .points small { font-size: 0.9rem; font-weight: 600; opacity: 0.8; }
+.wallet-card .guest-id { margin-top: 14px; font-size: 0.7rem; opacity: 0.55; letter-spacing: 0.03em; font-family: monospace; }
+.wallet-history-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; }
+.wallet-history-item { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.85rem; }
+.wallet-history-item:last-child { border-bottom: none; }
+.wallet-history-item .items { color: var(--ink-soft); font-size: 0.78rem; margin-top: 2px; }
+.wallet-history-item .meta { text-align: right; flex: none; }
+.wallet-history-item .date { color: var(--ink-soft); font-size: 0.72rem; }
+
 /* ── Cart drawer ────────────────────────────────────────────────────── */
 .drawer {
   position: fixed;
@@ -400,8 +449,29 @@ a { color: inherit; }
 .cart-item-controls { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 .cart-item-controls button:not(.cart-item-remove) { width: 24px; height: 24px; border-radius: 999px; border: 1px solid var(--line); background: #fff; }
 .cart-item-remove { align-self: flex-start; width: auto; height: auto; background: none; border: none; border-radius: 0; color: var(--danger); font-size: 0.75rem; padding: 0; }
+.cart-item-note { font-size: 0.78rem; color: var(--accent-dark); margin-top: 5px; background: var(--warn-soft); border-radius: 8px; padding: 4px 8px; display: inline-block; cursor: pointer; }
+.cart-item-note-add { font-size: 0.75rem; color: var(--ink-soft); margin-top: 5px; background: none; border: none; padding: 0; text-decoration: underline; text-underline-offset: 2px; }
 
 .cart-empty { text-align: center; color: var(--ink-soft); padding: 60px 10px; }
+
+/* ── Promo code + points redeem ──────────────────────────────────────── */
+.promo-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.promo-row input { flex: 1; }
+.promo-row .btn-ghost { flex: none; padding: 0 16px; }
+.promo-applied { display: flex; align-items: center; justify-content: space-between; background: var(--warn-soft); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 14px; font-size: 0.85rem; font-weight: 600; color: var(--warn); }
+.promo-applied button { background: none; border: none; color: var(--warn); text-decoration: underline; font-size: 0.78rem; font-weight: 600; }
+.promo-error { color: var(--danger); font-size: 0.8rem; margin: -8px 0 14px; }
+
+.redeem-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface-soft); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; }
+.redeem-row .info { font-size: 0.85rem; font-weight: 600; }
+.redeem-row .sub { font-size: 0.74rem; color: var(--ink-soft); font-weight: 400; }
+.redeem-row label.switch { position: relative; display: inline-block; width: 40px; height: 24px; flex: none; }
+.redeem-row .switch input { opacity: 0; width: 0; height: 0; }
+.redeem-row .switch .slider { position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: background 0.15s ease; cursor: pointer; }
+.redeem-row .switch .slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.15s ease; }
+.redeem-row .switch input:checked + .slider { background: var(--ink); }
+.redeem-row .switch input:checked + .slider::before { transform: translateX(16px); }
+.cart-discount-row { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--warn); margin-bottom: 6px; }
 
 /* ── Cart suggestions (missing drink / first course, etc.) ─────────────── */
 .cart-suggest { margin: 4px 0 18px; }

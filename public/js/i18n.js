@@ -63,6 +63,34 @@
     chatSubtitle: { ru: 'Спросите про блюда, аллергены, замену', kk: 'Тағамдар, аллергендер, алмастыру туралы сұраңыз', en: 'Ask about dishes, allergens, substitutes' },
     chatPlaceholder: { ru: 'Напишите сообщение…', kk: 'Хабарлама жазыңыз…', en: 'Type a message…' },
     chatQuizBtn: { ru: 'Подобрать блюдо', kk: 'Тағам таңдау', en: 'Recommend a dish' },
+
+    // customization (free-text dish notes)
+    customizeLabel: { ru: 'Пожелания к блюду', kk: 'Тағамға тілектер', en: 'Special requests' },
+    customizePlaceholder: { ru: 'Например: без лука, двойной сыр…', kk: 'Мысалы: пиязсыз, қос ірімшік…', en: 'E.g.: no onion, extra cheese…' },
+    cartItemNoteEdit: { ru: 'Пожелание', kk: 'Тілек', en: 'Note' },
+
+    // loyalty wallet
+    walletTitle: { ru: 'Бонусный кошелёк', kk: 'Бонус әмиян', en: 'Reward wallet' },
+    walletPoints: { ru: 'баллов', kk: 'балл', en: 'points' },
+    walletHistoryEmpty: { ru: 'Пока нет заказов', kk: 'Әзірге тапсырыс жоқ', en: 'No orders yet' },
+    walletHistoryTitle: { ru: 'Прошлые заказы', kk: 'Өткен тапсырыстар', en: 'Order history' },
+    walletClose: { ru: 'Закрыть', kk: 'Жабу', en: 'Close' },
+    redeemLabel: { ru: 'Списать баллы', kk: 'Балл есептен шығару', en: 'Redeem points' },
+    redeemAvailable: { ru: 'доступно', kk: 'қолжетімді', en: 'available' },
+
+    // promo code
+    promoLabel: { ru: 'Промокод', kk: 'Промокод', en: 'Promo code' },
+    promoPlaceholder: { ru: 'Введите код', kk: 'Кодты енгізіңіз', en: 'Enter code' },
+    promoApply: { ru: 'Применить', kk: 'Қолдану', en: 'Apply' },
+    promoApplied: { ru: 'Промокод применён', kk: 'Промокод қолданылды', en: 'Promo code applied' },
+    promoInvalid: { ru: 'Промокод не найден или недействителен', kk: 'Промокод табылмады немесе жарамсыз', en: 'Promo code not found or invalid' },
+    promoRemove: { ru: 'Убрать', kk: 'Алып тастау', en: 'Remove' },
+    discountLabel: { ru: 'Скидка', kk: 'Жеңілдік', en: 'Discount' },
+    pointsSpentLabel: { ru: 'Списано баллами', kk: 'Баллмен төленді', en: 'Paid with points' },
+
+    // table/branch badge
+    tableBadge: { ru: 'Стол', kk: 'Үстел', en: 'Table' },
+
     chatGreeting: {
       ru: 'Привет! 👋 Я помощник Degirmen. Спросите про состав, аллергены или попросите что-то посоветовать — с удовольствием помогу выбрать блюдо.',
       kk: 'Сәлем! 👋 Мен Degirmen көмекшісімін. Құрамы, аллергендер туралы сұраңыз немесе кеңес сұраңыз — тағам таңдауға көмектесемін.',

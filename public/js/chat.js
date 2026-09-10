@@ -82,7 +82,7 @@
       const res = await fetch(`${API}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, lang: window.I18N.getLang() }),
+        body: JSON.stringify({ messages: history, lang: window.I18N.getLang(), ...window.Degirmen?.getGuestContext() }),
       });
       typingEl.remove();
       if (!res.ok) {
