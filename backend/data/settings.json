@@ -1,0 +1,87 @@
+{
+  "negativeFeedback": {
+    "enabled": true,
+    "replyHint": "Если гость жалуется или недоволен — извинись, скажи, что передашь менеджеру, и предложи решение (замену блюда, помощь с выбором). Не спорь с гостем."
+  },
+  "orderHistory": {
+    "enabled": true,
+    "maxOrders": 5
+  },
+  "abandonedCart": {
+    "enabled": true,
+    "delayMinutes": 3,
+    "text": "Ваш заказ ещё не оформлен 🍽️ Готовы отправить его на кухню?",
+    "text_kk": "Тапсырысыңыз әлі рәсімделмеген 🍽️ Ас үйге жіберуге дайынсыз ба?",
+    "text_en": "Your order isn't placed yet 🍽️ Ready to send it to the kitchen?"
+  },
+  "upsell": {
+    "enabled": true,
+    "rules": [
+      {
+        "id": "rule-soup",
+        "mode": "missing_category",
+        "targetId": "soups",
+        "title": "Не хотите первое?",
+        "title_kk": "Бірінші тағам алмайсыз ба?",
+        "title_en": "How about a starter?",
+        "suggestCategory": "soups",
+        "suggestDishes": []
+      },
+      {
+        "id": "rule-drink",
+        "mode": "missing_category",
+        "targetId": "drinks",
+        "title": "Не забудьте про напиток",
+        "title_kk": "Сусын туралы ұмытпаңыз",
+        "title_en": "Don't forget a drink",
+        "suggestCategory": "drinks",
+        "suggestDishes": []
+      },
+      {
+        "id": "rule-dessert-tea",
+        "mode": "has_category",
+        "targetId": "desserts",
+        "title": "К десерту отлично идёт",
+        "title_kk": "Десертке тамаша үйлеседі",
+        "title_en": "Goes great with dessert",
+        "suggestCategory": "drinks",
+        "suggestDishes": []
+      }
+    ]
+  },
+  "customization": {
+    "enabled": true,
+    "quickOptions": ["без лука", "без соуса", "поострее", "без сыра", "без зелени"]
+  },
+  "loyalty": {
+    "enabled": true,
+    "earnPercent": 5,
+    "redeemMaxPercent": 50,
+    "minRedeem": 100,
+    "welcomeBonus": 0
+  },
+  "promo": {
+    "enabled": true
+  },
+  "venueInfo": {
+    "workingHours": "Ежедневно 10:00 — 23:00",
+    "address": "",
+    "phone": "",
+    "wifi": "",
+    "extra": ""
+  },
+  "faq": {
+    "enabled": true,
+    "items": [
+      {
+        "id": "faq-hours",
+        "question": "Во сколько вы работаете?",
+        "answer": "Мы открыты ежедневно с 10:00 до 23:00.",
+        "question_kk": "Жұмыс уақыттарыңыз қандай?",
+        "answer_kk": "Біз күн сайын 10:00-ден 23:00-ге дейін жұмыс істейміз.",
+        "question_en": "What are your opening hours?",
+        "answer_en": "We're open daily from 10:00 to 23:00."
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "main",
+    "name": "Degirmen — главный зал",
+    "name_kk": "Degirmen — басты зал",
+    "name_en": "Degirmen — Main Hall",
+    "address": "",
+    "tables": 20,
+    "active": true
+  }
+]

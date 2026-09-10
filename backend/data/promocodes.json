@@ -1,0 +1,13 @@
+[
+  {
+    "id": "promo-welcome",
+    "code": "DEGIRMEN10",
+    "type": "percent",
+    "value": 10,
+    "minOrder": 0,
+    "usageLimit": 0,
+    "usedCount": 0,
+    "expiresAt": "",
+    "active": true
+  }
+]

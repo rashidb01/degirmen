@@ -18,11 +18,34 @@ const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const DISHES_FILE = path.join(DATA_DIR, 'dishes.json');
 const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const BRANCHES_FILE = path.join(DATA_DIR, 'branches.json');
+const FEEDBACK_FILE = path.join(DATA_DIR, 'feedback.json');
+const CARTS_FILE = path.join(DATA_DIR, 'carts.json');
+const GUESTS_FILE = path.join(DATA_DIR, 'guests.json');
+const PROMOCODES_FILE = path.join(DATA_DIR, 'promocodes.json');
+
+const DEFAULT_SETTINGS = {
+  negativeFeedback: { enabled: true, replyHint: '' },
+  orderHistory: { enabled: true, maxOrders: 5 },
+  abandonedCart: { enabled: true, delayMinutes: 3, text: '', text_kk: '', text_en: '' },
+  upsell: { enabled: true, rules: [] },
+  customization: { enabled: true, quickOptions: [] },
+  loyalty: { enabled: true, earnPercent: 5, redeemMaxPercent: 50, minRedeem: 100, welcomeBonus: 0 },
+  promo: { enabled: true },
+  venueInfo: { workingHours: '', address: '', phone: '', wifi: '', extra: '' },
+  faq: { enabled: true, items: [] },
+};
 
 for (const dir of [DATA_DIR, UPLOADS_DIR]) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
-for (const [file, def] of [[DISHES_FILE, '[]'], [CATEGORIES_FILE, '[]'], [ORDERS_FILE, '[]']]) {
+for (const [file, def] of [
+  [DISHES_FILE, '[]'], [CATEGORIES_FILE, '[]'], [ORDERS_FILE, '[]'],
+  [BRANCHES_FILE, '[]'], [FEEDBACK_FILE, '[]'], [CARTS_FILE, '[]'],
+  [GUESTS_FILE, '[]'], [PROMOCODES_FILE, '[]'],
+  [SETTINGS_FILE, JSON.stringify(DEFAULT_SETTINGS, null, 2)],
+]) {
   if (!fs.existsSync(file)) fs.writeFileSync(file, def);
 }
 
@@ -37,6 +60,22 @@ function readJSON(file) {
 }
 function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
+}
+
+// Settings are one object (not a list) — merged over defaults so a missing
+// key in the file never crashes a feature that expects it.
+function readSettings() {
+  let stored = {};
+  try {
+    stored = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+  } catch (e) {
+    console.error('Failed to read settings.json:', e.message);
+  }
+  const merged = { ...DEFAULT_SETTINGS };
+  for (const key of Object.keys(DEFAULT_SETTINGS)) {
+    merged[key] = { ...DEFAULT_SETTINGS[key], ...(stored[key] || {}) };
+  }
+  return merged;
 }
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -87,6 +126,126 @@ app.get('/api/dishes/:id', (req, res) => {
   const dish = readJSON(DISHES_FILE).find((d) => d.id === req.params.id);
   if (!dish) return res.status(404).json({ error: 'Not found' });
   res.json(dish);
+});
+
+// ─── public: settings the storefront needs (no secrets in here) ──────────────
+app.get('/api/settings', (req, res) => {
+  const s = readSettings();
+  res.json({
+    abandonedCart: s.abandonedCart,
+    upsell: s.upsell,
+    customization: s.customization,
+    loyalty: { enabled: s.loyalty.enabled, earnPercent: s.loyalty.earnPercent, redeemMaxPercent: s.loyalty.redeemMaxPercent, minRedeem: s.loyalty.minRedeem },
+    promo: s.promo,
+    venueInfo: s.venueInfo,
+    faq: s.faq,
+  });
+});
+
+// ─── public: branches (network points) ───────────────────────────────────────
+app.get('/api/branches', (req, res) => {
+  res.json(readJSON(BRANCHES_FILE).filter((b) => b.active !== false));
+});
+
+// ─── guests: loyalty wallet + order history ──────────────────────────────────
+function findOrCreateGuest(guestId) {
+  if (!guestId) return null;
+  const guests = readJSON(GUESTS_FILE);
+  let guest = guests.find((g) => g.id === guestId);
+  if (!guest) {
+    const settings = readSettings();
+    guest = {
+      id: guestId,
+      points: Number(settings.loyalty.welcomeBonus) || 0,
+      ordersCount: 0,
+      totalSpent: 0,
+      createdAt: new Date().toISOString(),
+    };
+    guests.push(guest);
+    writeJSON(GUESTS_FILE, guests);
+  }
+  return guest;
+}
+
+// Balance + past orders in one call: powers the wallet card and lets the
+// assistant reference "in the past you ordered…".
+app.get('/api/guest/:guestId', (req, res) => {
+  const settings = readSettings();
+  const guest = findOrCreateGuest(req.params.guestId);
+  if (!guest) return res.status(400).json({ error: 'guestId is required' });
+  const history = readJSON(ORDERS_FILE)
+    .filter((o) => o.guestId === guest.id)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 20)
+    .map((o) => ({
+      id: o.id,
+      createdAt: o.createdAt,
+      total: o.total,
+      status: o.status,
+      items: (o.items || []).map((i) => ({ name: i.name, qty: i.qty })),
+      pointsEarned: o.loyalty?.earned || 0,
+    }));
+  res.json({
+    id: guest.id,
+    points: guest.points || 0,
+    ordersCount: guest.ordersCount || 0,
+    totalSpent: guest.totalSpent || 0,
+    loyaltyEnabled: settings.loyalty.enabled,
+    earnPercent: settings.loyalty.earnPercent,
+    minRedeem: settings.loyalty.minRedeem,
+    redeemMaxPercent: settings.loyalty.redeemMaxPercent,
+    history,
+  });
+});
+
+// ─── promo codes ─────────────────────────────────────────────────────────────
+// Shared by the "check code" button and the real order calculation, so the
+// preview a guest sees can't drift from what actually gets applied.
+function evaluatePromo(code, subtotal) {
+  const settings = readSettings();
+  if (!settings.promo.enabled) return { ok: false, error: 'promo_disabled' };
+  if (!code || !String(code).trim()) return { ok: false, error: 'empty' };
+  const promos = readJSON(PROMOCODES_FILE);
+  const promo = promos.find((p) => String(p.code).toLowerCase() === String(code).trim().toLowerCase());
+  if (!promo || promo.active === false) return { ok: false, error: 'not_found' };
+  if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) return { ok: false, error: 'expired' };
+  if (promo.usageLimit > 0 && (promo.usedCount || 0) >= promo.usageLimit) return { ok: false, error: 'used_up' };
+  if (promo.minOrder > 0 && subtotal < promo.minOrder) return { ok: false, error: 'min_order', minOrder: promo.minOrder };
+  const discount = promo.type === 'percent'
+    ? Math.round((subtotal * Number(promo.value)) / 100)
+    : Math.min(Number(promo.value), subtotal);
+  return { ok: true, promo, discount: Math.max(0, Math.min(discount, subtotal)) };
+}
+
+app.post('/api/promo/check', (req, res) => {
+  const { code, subtotal } = req.body || {};
+  const result = evaluatePromo(code, Number(subtotal) || 0);
+  if (!result.ok) return res.status(400).json({ error: result.error, minOrder: result.minOrder });
+  res.json({ code: result.promo.code, type: result.promo.type, value: result.promo.value, discount: result.discount });
+});
+
+// ─── abandoned carts ─────────────────────────────────────────────────────────
+// The storefront reports its cart so staff can see "table 5 filled a cart but
+// never sent it". Cleared automatically when the order is placed.
+app.post('/api/carts', (req, res) => {
+  const settings = readSettings();
+  if (!settings.abandonedCart.enabled) return res.json({ ok: true, tracked: false });
+  const { guestId, items, total, tableNumber, branchId } = req.body || {};
+  if (!guestId) return res.status(400).json({ error: 'guestId is required' });
+
+  const carts = readJSON(CARTS_FILE).filter((c) => c.guestId !== guestId);
+  if (Array.isArray(items) && items.length > 0) {
+    carts.push({
+      guestId,
+      items,
+      total: Number(total) || 0,
+      tableNumber: tableNumber || null,
+      branchId: branchId || null,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+  writeJSON(CARTS_FILE, carts);
+  res.json({ ok: true, tracked: true });
 });
 
 // ─── admin: categories ──────────────────────────────────────────────────────
@@ -238,10 +397,11 @@ app.post('/api/admin/translate', requireAdmin, async (req, res) => {
 //     generated here and its status polled/webhooked once the merchant is registered with Kaspi.
 
 app.post('/api/orders', (req, res) => {
-  const { items, tableNumber, customerName, phone, comment } = req.body || {};
+  const { items, tableNumber, branchId, customerName, phone, comment, guestId, promoCode, redeemPoints } = req.body || {};
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'items must be a non-empty array' });
   }
+  const settings = readSettings();
   const dishes = readJSON(DISHES_FILE);
   const dishById = new Map(dishes.map((d) => [d.id, d]));
 
@@ -256,26 +416,87 @@ app.post('/api/orders', (req, res) => {
       price: dish.price,
       qty,
       subtotal: dish.price * qty,
+      // Free-text customization for this line ("без лука", "двойной халапеньо")
+      note: settings.customization.enabled ? String(it.note || '').slice(0, 200) : '',
     });
   }
-  const total = lineItems.reduce((sum, li) => sum + li.subtotal, 0);
+  const subtotal = lineItems.reduce((sum, li) => sum + li.subtotal, 0);
+
+  // Promo code first, then points — points can only be spent on what's left.
+  let promoDiscount = 0;
+  let appliedPromo = null;
+  if (promoCode) {
+    const result = evaluatePromo(promoCode, subtotal);
+    if (result.ok) {
+      promoDiscount = result.discount;
+      appliedPromo = result.promo;
+    }
+  }
+
+  const guest = guestId ? findOrCreateGuest(guestId) : null;
+  let pointsSpent = 0;
+  if (settings.loyalty.enabled && guest && Number(redeemPoints) > 0) {
+    const afterPromo = subtotal - promoDiscount;
+    const maxByPercent = Math.floor((afterPromo * Number(settings.loyalty.redeemMaxPercent)) / 100);
+    const wanted = Math.floor(Number(redeemPoints));
+    pointsSpent = Math.max(0, Math.min(wanted, guest.points || 0, maxByPercent, afterPromo));
+    if (pointsSpent < Number(settings.loyalty.minRedeem)) pointsSpent = 0;
+  }
+
+  const total = Math.max(0, subtotal - promoDiscount - pointsSpent);
+  const pointsEarned = settings.loyalty.enabled && guest
+    ? Math.round((total * Number(settings.loyalty.earnPercent)) / 100)
+    : 0;
 
   const order = {
     id: uuidv4().slice(0, 8),
     createdAt: new Date().toISOString(),
     status: 'new', // new -> confirmed -> preparing -> ready -> served / cancelled
     items: lineItems,
+    subtotal,
     total,
     tableNumber: tableNumber || null,
+    branchId: branchId || null,
+    guestId: guestId || null,
     customerName: customerName || null,
     phone: phone || null,
     comment: comment || '',
+    promo: appliedPromo ? { code: appliedPromo.code, discount: promoDiscount } : null,
+    loyalty: { spent: pointsSpent, earned: pointsEarned },
     payment: { method: 'pay_at_table', status: 'unpaid' }, // Kaspi Pay hooks in later here
   };
 
   const orders = readJSON(ORDERS_FILE);
   orders.push(order);
   writeJSON(ORDERS_FILE, orders);
+
+  // Wallet: spend what was redeemed, credit the cashback for this order.
+  if (guest) {
+    const guests = readJSON(GUESTS_FILE);
+    const idx = guests.findIndex((g) => g.id === guest.id);
+    if (idx !== -1) {
+      guests[idx].points = Math.max(0, (guests[idx].points || 0) - pointsSpent + pointsEarned);
+      guests[idx].ordersCount = (guests[idx].ordersCount || 0) + 1;
+      guests[idx].totalSpent = (guests[idx].totalSpent || 0) + total;
+      guests[idx].lastOrderAt = order.createdAt;
+      writeJSON(GUESTS_FILE, guests);
+    }
+  }
+
+  if (appliedPromo) {
+    const promos = readJSON(PROMOCODES_FILE);
+    const pIdx = promos.findIndex((p) => p.id === appliedPromo.id);
+    if (pIdx !== -1) {
+      promos[pIdx].usedCount = (promos[pIdx].usedCount || 0) + 1;
+      writeJSON(PROMOCODES_FILE, promos);
+    }
+  }
+
+  // The cart made it to an order — stop counting it as abandoned.
+  if (guestId) {
+    const carts = readJSON(CARTS_FILE).filter((c) => c.guestId !== guestId);
+    writeJSON(CARTS_FILE, carts);
+  }
 
   rkeeper.pushOrderToRKeeper(order).catch((e) => console.error('[rkeeper] push failed:', e.message));
 
@@ -305,6 +526,144 @@ app.patch('/api/admin/orders/:id', requireAdmin, (req, res) => {
   res.json(orders[idx]);
 });
 
+// ─── admin: settings ─────────────────────────────────────────────────────────
+app.get('/api/admin/settings', requireAdmin, (req, res) => res.json(readSettings()));
+
+app.put('/api/admin/settings', requireAdmin, (req, res) => {
+  const current = readSettings();
+  const patch = req.body || {};
+  const next = { ...current };
+  for (const key of Object.keys(DEFAULT_SETTINGS)) {
+    if (patch[key]) next[key] = { ...current[key], ...patch[key] };
+  }
+  writeJSON(SETTINGS_FILE, next);
+  res.json(next);
+});
+
+// ─── admin: branches (network points + tables) ───────────────────────────────
+app.get('/api/admin/branches', requireAdmin, (req, res) => res.json(readJSON(BRANCHES_FILE)));
+
+app.post('/api/admin/branches', requireAdmin, (req, res) => {
+  const { name, name_kk, name_en, address, tables } = req.body || {};
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'name is required' });
+  const branches = readJSON(BRANCHES_FILE);
+  const branch = {
+    id: `b-${uuidv4().slice(0, 6)}`,
+    name: String(name).trim(),
+    name_kk: name_kk || '',
+    name_en: name_en || '',
+    address: address || '',
+    tables: Math.max(0, Math.min(500, parseInt(tables, 10) || 0)),
+    active: true,
+  };
+  branches.push(branch);
+  writeJSON(BRANCHES_FILE, branches);
+  res.status(201).json(branch);
+});
+
+app.put('/api/admin/branches/:id', requireAdmin, (req, res) => {
+  const branches = readJSON(BRANCHES_FILE);
+  const idx = branches.findIndex((b) => b.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  branches[idx] = { ...branches[idx], ...req.body, id: branches[idx].id };
+  writeJSON(BRANCHES_FILE, branches);
+  res.json(branches[idx]);
+});
+
+app.delete('/api/admin/branches/:id', requireAdmin, (req, res) => {
+  writeJSON(BRANCHES_FILE, readJSON(BRANCHES_FILE).filter((b) => b.id !== req.params.id));
+  res.json({ ok: true });
+});
+
+// ─── admin: promo codes ──────────────────────────────────────────────────────
+app.get('/api/admin/promocodes', requireAdmin, (req, res) => res.json(readJSON(PROMOCODES_FILE)));
+
+app.post('/api/admin/promocodes', requireAdmin, (req, res) => {
+  const { code, type, value, minOrder, usageLimit, expiresAt } = req.body || {};
+  if (!code || !String(code).trim()) return res.status(400).json({ error: 'code is required' });
+  if (!['percent', 'fixed'].includes(type)) return res.status(400).json({ error: 'type must be percent or fixed' });
+  if (value == null || isNaN(Number(value))) return res.status(400).json({ error: 'value must be a number' });
+  const promos = readJSON(PROMOCODES_FILE);
+  const normalized = String(code).trim().toUpperCase();
+  if (promos.some((p) => String(p.code).toUpperCase() === normalized)) {
+    return res.status(400).json({ error: 'code already exists' });
+  }
+  const promo = {
+    id: `promo-${uuidv4().slice(0, 6)}`,
+    code: normalized,
+    type,
+    value: Number(value),
+    minOrder: Number(minOrder) || 0,
+    usageLimit: Number(usageLimit) || 0,
+    usedCount: 0,
+    expiresAt: expiresAt || '',
+    active: true,
+  };
+  promos.push(promo);
+  writeJSON(PROMOCODES_FILE, promos);
+  res.status(201).json(promo);
+});
+
+app.put('/api/admin/promocodes/:id', requireAdmin, (req, res) => {
+  const promos = readJSON(PROMOCODES_FILE);
+  const idx = promos.findIndex((p) => p.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  promos[idx] = { ...promos[idx], ...req.body, id: promos[idx].id };
+  writeJSON(PROMOCODES_FILE, promos);
+  res.json(promos[idx]);
+});
+
+app.delete('/api/admin/promocodes/:id', requireAdmin, (req, res) => {
+  writeJSON(PROMOCODES_FILE, readJSON(PROMOCODES_FILE).filter((p) => p.id !== req.params.id));
+  res.json({ ok: true });
+});
+
+// ─── admin: guests (loyalty wallets) ─────────────────────────────────────────
+app.get('/api/admin/guests', requireAdmin, (req, res) => {
+  const guests = readJSON(GUESTS_FILE).sort((a, b) => new Date(b.lastOrderAt || b.createdAt) - new Date(a.lastOrderAt || a.createdAt));
+  res.json(guests);
+});
+
+app.post('/api/admin/guests/:id/points', requireAdmin, (req, res) => {
+  const { delta } = req.body || {};
+  if (delta == null || isNaN(Number(delta))) return res.status(400).json({ error: 'delta must be a number' });
+  const guests = readJSON(GUESTS_FILE);
+  const idx = guests.findIndex((g) => g.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  guests[idx].points = Math.max(0, (guests[idx].points || 0) + Number(delta));
+  writeJSON(GUESTS_FILE, guests);
+  res.json(guests[idx]);
+});
+
+// ─── admin: intercepted negative feedback ────────────────────────────────────
+app.get('/api/admin/feedback', requireAdmin, (req, res) => {
+  res.json(readJSON(FEEDBACK_FILE).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+});
+
+app.put('/api/admin/feedback/:id', requireAdmin, (req, res) => {
+  const list = readJSON(FEEDBACK_FILE);
+  const idx = list.findIndex((f) => f.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  list[idx] = { ...list[idx], ...req.body, id: list[idx].id };
+  writeJSON(FEEDBACK_FILE, list);
+  res.json(list[idx]);
+});
+
+// ─── admin: abandoned carts ──────────────────────────────────────────────────
+app.get('/api/admin/carts', requireAdmin, (req, res) => {
+  const minutes = Number(req.query.olderThanMinutes) || 0;
+  const cutoff = Date.now() - minutes * 60 * 1000;
+  const carts = readJSON(CARTS_FILE)
+    .filter((c) => new Date(c.updatedAt).getTime() <= cutoff)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  res.json(carts);
+});
+
+app.delete('/api/admin/carts/:guestId', requireAdmin, (req, res) => {
+  writeJSON(CARTS_FILE, readJSON(CARTS_FILE).filter((c) => c.guestId !== req.params.guestId));
+  res.json({ ok: true });
+});
+
 // ─── AI chat assistant ──────────────────────────────────────────────────────
 // The assistant is grounded in the live menu (name/description/price/allergens/tags)
 // so it can answer allergen questions and suggest a substitute dish from the real menu.
@@ -328,7 +687,108 @@ function buildMenuContext(lang) {
 
 const LANG_NAMES = { ru: 'русском', kk: 'казахском', en: 'английском' };
 
-const CHAT_SYSTEM_PROMPT = (menuContext, lang) => `Ты — AI-консультант ресторана "Degirmen" на сайте с электронным меню. Твоя единственная
+// ─── negative feedback interception ──────────────────────────────────────────
+// Lightweight keyword screen (not an AI call — needs to be instant on every
+// message) that flags likely complaints into feedback.json so staff see them
+// in the admin panel, without slowing down or altering the actual reply.
+const NEGATIVE_PATTERNS = [
+  /плохо|ужас|отвратительн|кошмар|невкусн|не понравил|разочаров|испортил|грязн|хамств|нахамил|груб(o|ый|о)|долго ждал|холодн(ый|ая|ое)\s*(еда|блюдо|суп|пицца)?|верните деньги|возврат денег|жалоб|обман|никогда (не )?(прид|верн|закаж)/i,
+  /жаман|нашар|ұнамады|шағым/i, // kk
+  /terrible|awful|disgusting|worst|horrible|rude|cold food|bad service|complain|refund|never coming back|never order again/i,
+];
+
+function interceptNegativeFeedback(text, { guestId, tableNumber, branchId } = {}) {
+  const settings = readSettings();
+  if (!settings.negativeFeedback.enabled) return;
+  if (!text || typeof text !== 'string') return;
+  if (!NEGATIVE_PATTERNS.some((re) => re.test(text))) return;
+
+  const list = readJSON(FEEDBACK_FILE);
+  list.push({
+    id: uuidv4().slice(0, 8),
+    createdAt: new Date().toISOString(),
+    text: text.slice(0, 1000),
+    guestId: guestId || null,
+    tableNumber: tableNumber || null,
+    branchId: branchId || null,
+    status: 'new', // new -> seen -> resolved
+  });
+  writeJSON(FEEDBACK_FILE, list);
+}
+
+// Everything the assistant can answer instantly without inventing anything:
+// venue facts, the admin's FAQ list, what this guest ordered before, and the
+// upsell/customization rules the restaurant configured.
+function buildExtraContext(lang, guestId) {
+  const s = readSettings();
+  const field = (obj, base) => (lang && lang !== 'ru' && obj[`${base}_${lang}`]) || obj[base] || '';
+  const parts = [];
+
+  const info = s.venueInfo;
+  const infoLines = [
+    info.workingHours ? `график работы: ${info.workingHours}` : '',
+    info.address ? `адрес: ${info.address}` : '',
+    info.phone ? `телефон: ${info.phone}` : '',
+    info.wifi ? `Wi-Fi: ${info.wifi}` : '',
+    info.extra || '',
+  ].filter(Boolean);
+  if (infoLines.length) {
+    parts.push(`Информация о заведении (отвечай по ней сразу, без выдумок):\n${infoLines.map((l) => `- ${l}`).join('\n')}`);
+  }
+
+  if (s.faq.enabled && s.faq.items?.length) {
+    const faq = s.faq.items
+      .map((f) => `- «${field(f, 'question')}» → ${field(f, 'answer')}`)
+      .join('\n');
+    parts.push(`Частые вопросы и готовые ответы (используй их дословно по смыслу):\n${faq}`);
+  }
+
+  if (s.customization.enabled) {
+    const opts = s.customization.quickOptions?.length ? ` Частые пожелания: ${s.customization.quickOptions.join(', ')}.` : '';
+    parts.push(`Гость может менять состав блюда обычными словами («без лука», «двойной сыр», «поострее»).${opts} Если он просит такое — подтверди, что это можно, и подскажи написать это пожелание в поле «Пожелания к блюду» в карточке блюда или в комментарии к заказу.`);
+  }
+
+  if (s.upsell.enabled && s.upsell.rules?.length) {
+    const dishes = readJSON(DISHES_FILE);
+    const nameOf = (id) => dishes.find((d) => d.id === id)?.name || id;
+    const rules = s.upsell.rules
+      .map((r) => {
+        const suggestion = [
+          r.suggestCategory ? `блюда из категории «${r.suggestCategory}»` : '',
+          (r.suggestDishes || []).map(nameOf).join(', '),
+        ].filter(Boolean).join(', ');
+        if (!suggestion) return '';
+        return `- ${r.mode === 'has_category' || r.mode === 'has_dish' ? 'если гость берёт' : 'если у гостя ещё нет'} «${r.targetId}» → предложи ${suggestion}`;
+      })
+      .filter(Boolean).join('\n');
+    if (rules) parts.push(`Что уместно предлагать дополнительно (ненавязчиво, максимум одно предложение за ответ):\n${rules}`);
+  }
+
+  if (s.negativeFeedback.enabled && s.negativeFeedback.replyHint) {
+    parts.push(`Если гость недоволен: ${s.negativeFeedback.replyHint}`);
+  }
+
+  if (s.orderHistory.enabled && guestId) {
+    const past = readJSON(ORDERS_FILE)
+      .filter((o) => o.guestId === guestId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, Number(s.orderHistory.maxOrders) || 5);
+    if (past.length) {
+      const lines = past
+        .map((o) => `- ${new Date(o.createdAt).toLocaleDateString('ru-RU')}: ${(o.items || []).map((i) => `${i.name} x${i.qty}`).join(', ')}`)
+        .join('\n');
+      parts.push(`Прошлые заказы этого гостя (можешь мягко на них ссылаться и предлагать повтор любимого, но не навязывайся):\n${lines}`);
+    }
+  }
+
+  if (s.loyalty.enabled) {
+    parts.push(`У гостей есть бонусный счёт: за заказ начисляется ${s.loyalty.earnPercent}% кэшбэка баллами, оплатить баллами можно до ${s.loyalty.redeemMaxPercent}% заказа (от ${s.loyalty.minRedeem} баллов). Если спрашивают про баллы — объясни это и скажи, что баланс виден по кнопке с бонусами наверху сайта.`);
+  }
+
+  return parts.join('\n\n');
+}
+
+const CHAT_SYSTEM_PROMPT = (menuContext, lang, extraContext) => `Ты — AI-консультант ресторана "Degirmen" на сайте с электронным меню. Твоя единственная
 работа — помогать гостям с выбором блюд ИЗ ЭТОГО МЕНЮ. Ты не универсальный ассистент.
 ${lang && LANG_NAMES[lang] ? `Сайт сейчас переключён на ${LANG_NAMES[lang]} язык — отвечай ТОЛЬКО на ${LANG_NAMES[lang]} языке, независимо от языка вопроса гостя.` : 'Отвечай на языке гостя (обычно русский).'}
 
@@ -350,13 +810,14 @@ ${lang && LANG_NAMES[lang] ? `Сайт сейчас переключён на ${
 - Коротко: 2-5 предложений, можно один emoji по смыслу.
 
 Актуальное меню (используй только это, других блюд не существует):
-${menuContext}`;
+${menuContext}
+${extraContext ? `\n${extraContext}` : ''}`;
 
 app.post('/api/chat', async (req, res) => {
   if (!GROQ_API_KEY) {
     return res.status(503).json({ error: 'AI chat is not configured (missing GROQ_API_KEY on the server)' });
   }
-  const { messages, lang } = req.body || {};
+  const { messages, lang, guestId, tableNumber, branchId } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages must be a non-empty array' });
   }
@@ -365,8 +826,13 @@ app.post('/api/chat', async (req, res) => {
     .slice(-20);
   const safeLang = ['ru', 'kk', 'en'].includes(lang) ? lang : null;
 
+  // Complaint interception runs alongside the reply, never blocking it.
+  const lastUserMessage = [...safeMessages].reverse().find((m) => m.role === 'user')?.content || '';
+  interceptNegativeFeedback(lastUserMessage, { guestId, tableNumber, branchId });
+
   try {
     const menuContext = buildMenuContext(safeLang);
+    const extraContext = buildExtraContext(safeLang, guestId);
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -381,7 +847,7 @@ app.post('/api/chat', async (req, res) => {
         // "thinking" before the visible reply. Keep that budget small so the
         // actual answer doesn't get starved (empty content -> our fallback line).
         reasoning_effort: 'low',
-        messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT(menuContext, safeLang) }, ...safeMessages],
+        messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT(menuContext, safeLang, extraContext) }, ...safeMessages],
       }),
     });
 
