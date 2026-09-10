@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
+const rkeeper = require('./integrations/rkeeper');
 
 const PORT = process.env.PORT || 4100;
 const ADMIN_KEY = process.env.ADMIN_KEY || '';
@@ -163,13 +164,10 @@ app.post('/api/admin/upload', requireAdmin, upload.single('image'), (req, res) =
 
 // ─── orders ─────────────────────────────────────────────────────────────────
 // NOTE integration points for later:
-//   - sendOrderToRKeeper(order)  -> push order into R-Keeper POS once credentials/API are available
+//   - rkeeper.pushOrderToRKeeper(order) -> see backend/integrations/rkeeper.js
+//     (no-op until RKEEPER_ENABLED=true and real credentials are in .env)
 //   - Kaspi Pay: today orders are "pay at the table"; a Kaspi Pay checkout link/QR can be
 //     generated here and its status polled/webhooked once the merchant is registered with Kaspi.
-function sendOrderToRKeeper(order) {
-  // TODO: R-Keeper integration. Requires restaurant's R-Keeper StationAPI/RK7 credentials.
-  // Left as a no-op stub so wiring it up later doesn't require touching the order flow.
-}
 
 app.post('/api/orders', (req, res) => {
   const { items, tableNumber, customerName, phone, comment } = req.body || {};
@@ -211,7 +209,7 @@ app.post('/api/orders', (req, res) => {
   orders.push(order);
   writeJSON(ORDERS_FILE, orders);
 
-  sendOrderToRKeeper(order);
+  rkeeper.pushOrderToRKeeper(order).catch((e) => console.error('[rkeeper] push failed:', e.message));
 
   res.status(201).json(order);
 });
@@ -338,4 +336,14 @@ app.listen(PORT, () => {
   console.log(`Degirmen backend running on http://localhost:${PORT}`);
   if (!GROQ_API_KEY) console.warn('  ! GROQ_API_KEY not set — /api/chat will be disabled');
   if (!ADMIN_KEY) console.warn('  ! ADMIN_KEY not set — admin routes will reject all requests');
+  if (rkeeper.isConfigured()) {
+    console.log('  R-Keeper sync enabled — pulling menu on a timer.');
+    rkeeper.startMenuSync((menu) => {
+      if (menu.categories) writeJSON(CATEGORIES_FILE, menu.categories);
+      if (menu.dishes) writeJSON(DISHES_FILE, menu.dishes);
+      console.log('[rkeeper] menu synced from R-Keeper.');
+    });
+  } else {
+    console.log('  R-Keeper sync disabled (set RKEEPER_ENABLED=true in .env once you have API access).');
+  }
 });
